@@ -1,0 +1,21 @@
+{
+  "createdAt": "2026-07-18T10:19:27.153Z",
+  "studioVersion": "6.5.0",
+  "version": 3,
+  "workspaces": [
+    {
+      "basePath": "/",
+      "dataset": "production",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><rect width=\"32\" height=\"32\" rx=\"2\" fill=\"#18e2e2\"></rect><text x=\"50%\" y=\"50%\" text-anchor=\"middle\" alignment-baseline=\"middle\" fill=\"hsla(180, 81%, 9%, 1)\" style=\"font-family:Inter, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, &quot;Liberation Sans&quot;, Helvetica, Arial, system-ui, sans-serif;font-weight:500;font-size:13px;transform:translateY(1px)\">NN</text></svg>",
+      "mediaLibrary": {
+        "enabled": false,
+        "__internal": {}
+      },
+      "name": "nur-news",
+      "projectId": "l7g6k8p8",
+      "schema": "312f86b6.create-schema.json",
+      "title": "NUR News",
+      "tools": "ef87c8fe.create-tools.json"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+import { createClient } from 'next-sanity'
+
+export const client = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  apiVersion: '2026-07-17',
+  useCdn: true,
+})
+
+export const homepageQuery = `
+  *[_type == "homepage"][0] {  // ← removed: && _id == "homepage"
+    heroStory->{
+      headline, slug, excerpt, featuredImage, category, publishedAt,
+      "author": author->{name, photo}
+    },
+    sidebarStories[]->{
+      headline, slug, excerpt, featuredImage, category, publishedAt
+    },
+    showLiveUpdates,
+    liveUpdatesSource->{
+      headline, liveUpdates, slug, category
+    },
+    highlightSection{
+      title,
+      featured->{
+        headline, slug, excerpt, featuredImage, category, publishedAt,
+        "author": author->{name, photo}
+      },
+      list[]->{
+        headline, slug, excerpt, featuredImage, category, publishedAt
+      }
+    },
+    gridSection{
+      title, category, count
+    },
+    opinionSection{
+      title, count
+    }
+  }
+`
+
+export const breakingNewsQuery = `
+  *[_type == "article" && isBreaking == true && status == "published"] | order(publishedAt desc)[0] {
+    headline, slug, category, featuredImage
+  }
+`
+
+export const articleQuery = `
+  *[_type == "article" && slug.current == $slug][0] {
+    headline, slug, excerpt, category, tags,
+    featuredImage, body, isBreaking, hasLiveUpdates, liveUpdates,
+    publishedAt,
+    "author": author->{name, photo, bio, slug, role}
+  }
+`
+
+export const categoryQuery = (category: string) => `
+  *[_type == "article" && category == "${category}" && status == "published"] | order(publishedAt desc) {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`

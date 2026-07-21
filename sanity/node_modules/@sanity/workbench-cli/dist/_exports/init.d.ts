@@ -1,0 +1,12 @@
+/** App scaffold — `entry` auto-declares the navigable app view. */
+export declare const workbenchAppConfigTemplate =
+  "\nimport {defineCliConfig, unstable_defineApp} from 'sanity/cli'\n\nexport default defineCliConfig({\n  app: unstable_defineApp({\n    name: '%name%',\n    title: '%title%',\n    organizationId: '%organizationId%',\n    entry: '%entry%',\n  }),\n})\n";
+
+/**
+ * Studio scaffold — brands with name/title only, no `entry` (studio app views
+ * aren't implemented yet).
+ */
+export declare const workbenchStudioConfigTemplate =
+  "\nimport {defineCliConfig, unstable_defineApp} from 'sanity/cli'\n\nexport default defineCliConfig({\n  api: {\n    projectId: '%projectId%',\n    dataset: '%dataset%'\n  },\n  app: unstable_defineApp({\n    name: '%name%',\n    title: '%title%',\n    organizationId: '%organizationId%',\n  }),\n  deployment: {\n    /**\n     * Enable auto-updates for studios.\n     * Learn more at https://www.sanity.io/docs/studio/latest-version-of-sanity#k47faf43faf56\n     */\n    autoUpdates: __BOOL__autoUpdates__,\n  },\n})\n";
+
+export {};

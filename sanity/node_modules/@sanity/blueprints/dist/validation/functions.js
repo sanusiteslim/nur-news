@@ -1,0 +1,465 @@
+import { VALID_RUNTIMES, validateResource, } from '../index.js';
+import { isReference } from '../utils/validation.js';
+const BASE_EVENT_KEYS = new Set(['on', 'filter', 'projection', 'includeDrafts']);
+const DOCUMENT_EVENT_KEYS = new Set(['includeAllVersions', 'resource', ...BASE_EVENT_KEYS.values()]);
+const MEDIA_LIBRARY_EVENT_KEYS = new Set(['resource', ...BASE_EVENT_KEYS.values()]);
+const MINUTES = /^(\*(\/([1-5]?\d))?|([0-5]?\d)(-[0-5]?\d)?(\/([1-5]?\d))?)(,(\*(\/([1-5]?\d))?|([0-5]?\d)(-[0-5]?\d)?(\/([1-5]?\d))?))*$/;
+const HOURS = /^(\*(\/([1-9]|1\d|2[0-3]))?|([01]?\d|2[0-3])(-([01]?\d|2[0-3]))?(\/([1-9]|1\d|2[0-3]))?)(,(\*(\/([1-9]|1\d|2[0-3]))?|([01]?\d|2[0-3])(-([01]?\d|2[0-3]))?(\/([1-9]|1\d|2[0-3]))?))*$/;
+const DAY_OF_MONTH = /^(\*(\/([1-9]|[12]\d|3[01]))?|([1-9]|[12]\d|3[01])(-([1-9]|[12]\d|3[01]))?(\/([1-9]|[12]\d|3[01]))?)(,(\*(\/([1-9]|[12]\d|3[01]))?|([1-9]|[12]\d|3[01])(-([1-9]|[12]\d|3[01]))?(\/([1-9]|[12]\d|3[01]))?))*$/;
+const MONTH = /^(\*(\/([1-9]|1[0-2]))?|([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(-([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?(\/([1-9]|1[0-2]))?)(,(\*(\/([1-9]|1[0-2]))?|([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(-([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))?(\/([1-9]|1[0-2]))?))*$/i;
+const DAY_OF_WEEK = /^(\*(\/([0-7]))?|([0-7]|SUN|MON|TUE|WED|THU|FRI|SAT)(-([0-7]|SUN|MON|TUE|WED|THU|FRI|SAT))?(\/([0-7]))?)(,(\*(\/([0-7]))?|([0-7]|SUN|MON|TUE|WED|THU|FRI|SAT)(-([0-7]|SUN|MON|TUE|WED|THU|FRI|SAT))?(\/([0-7]))?))*$/i;
+/**
+ * Validates a document function resource configuration.
+ * Checks that the function has a valid event configuration, correct type, and all required base properties.
+ * @param functionResource The function resource to validate
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateDocumentFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = validateFunction(functionResource);
+    // event validation
+    if ('event' in functionResource) {
+        // `event` was specified, but event keys (aggregated in `maybeEvent`) were also specified at the top level. ambiguous and deprecated usage.
+        const duplicateKeys = Array.from(DOCUMENT_EVENT_KEYS).filter((key) => key in functionResource);
+        if (duplicateKeys.length > 0) {
+            errors.push({
+                type: 'invalid_property',
+                message: `\`event\` properties should be specified under the \`event\` key - specifying them at the top level is deprecated. The following keys were specified at the top level: ${duplicateKeys.map((k) => `\`${k}\``).join(', ')}`,
+            });
+        }
+        else {
+            errors.push(...validateDocumentFunctionEvent(functionResource.event));
+        }
+    }
+    else {
+        errors.push(...validateDocumentFunctionEvent(functionResource));
+    }
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.document') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.document`' });
+    }
+    return errors;
+}
+/**
+ * Validates a media library asset function resource configuration.
+ * Checks that the function has a valid event configuration with required resource, correct type, and all required base properties.
+ * @param functionResource The function resource to validate
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateMediaLibraryAssetFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = validateFunction(functionResource);
+    if ('event' in functionResource) {
+        errors.push(...validateMediaLibraryFunctionEvent(functionResource.event));
+    }
+    else {
+        errors.push({ type: 'missing_parameter', message: '`event` is required for a media library function' });
+    }
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.media-library.asset') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.media-library.asset`' });
+    }
+    return errors;
+}
+/**
+ * Validates base function resource properties.
+ * Checks that required fields (name, type) are present and that optional fields have correct types.
+ * @param functionResource The function resource to validate
+ * @internal
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = validateResource(functionResource);
+    if (!('name' in functionResource)) {
+        errors.push({ type: 'missing_parameter', message: '`name` is required' });
+    }
+    else if (typeof functionResource.name !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`name` must be a string' });
+    }
+    if (!('type' in functionResource)) {
+        errors.push({ type: 'missing_parameter', message: '`type` is required' });
+    }
+    else if (typeof functionResource.type !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`type` must be a string' });
+    }
+    // type validation
+    if ('memory' in functionResource) {
+        if (typeof functionResource.memory !== 'number' && typeof functionResource.memory !== 'undefined') {
+            errors.push({ type: 'invalid_type', message: '`memory` must be a number' });
+        }
+    }
+    if ('timeout' in functionResource) {
+        if (typeof functionResource.timeout !== 'number' && typeof functionResource.timeout !== 'undefined') {
+            errors.push({ type: 'invalid_type', message: '`timeout` must be a number' });
+        }
+    }
+    if ('robotToken' in functionResource) {
+        if (typeof functionResource.robotToken !== 'string' && typeof functionResource.robotToken !== 'undefined') {
+            errors.push({ type: 'invalid_type', message: '`robotToken` must be a string' });
+        }
+    }
+    if ('runtime' in functionResource) {
+        if (typeof functionResource.runtime !== 'undefined' && !VALID_RUNTIMES.includes(functionResource.runtime)) {
+            errors.push({ type: 'invalid_value', message: `\`runtime\` must be one of ${VALID_RUNTIMES.join(', ')}` });
+        }
+    }
+    if ('env' in functionResource && typeof functionResource.env !== 'undefined') {
+        if (typeof functionResource.env !== 'object' || functionResource.env === null) {
+            errors.push({ type: 'invalid_type', message: `\`env\` must be an object` });
+        }
+        else {
+            for (const [key, value] of Object.entries(functionResource.env)) {
+                if (typeof value !== 'string') {
+                    errors.push({ type: 'invalid_type', message: `\`env[${key}]\` must be a string` });
+                }
+            }
+        }
+    }
+    return errors;
+}
+/**
+ * Validates a document function event configuration.
+ * Checks event trigger types, optional filter/projection, and optional dataset resource scoping.
+ * @param event The event configuration to validate
+ * @returns Array of validation errors, empty if valid
+ */
+function validateDocumentFunctionEvent(event) {
+    if (!event)
+        return [{ type: 'invalid_value', message: 'Function event must be provided' }];
+    if (typeof event !== 'object')
+        return [{ type: 'invalid_type', message: 'Function event must be an object' }];
+    const cleanEvent = Object.fromEntries(Object.entries(event).filter(([key]) => DOCUMENT_EVENT_KEYS.has(key)));
+    const errors = [];
+    const fullEvent = {
+        on: cleanEvent.on || ['publish'],
+        ...cleanEvent,
+    };
+    if (!Array.isArray(fullEvent.on))
+        errors.push({ type: 'invalid_type', message: '`event.on` must be an array' });
+    if (fullEvent.resource) {
+        errors.push(...validateFunctionEventResourceDataset(fullEvent));
+    }
+    return errors;
+}
+function validateFunctionEventResourceDataset(event) {
+    const errors = [];
+    if (!event || typeof event !== 'object')
+        return [{ type: 'invalid_value', message: '`event` must be an object' }];
+    if (!('resource' in event))
+        return [{ type: 'invalid_value', message: '`event.resource` must exist' }];
+    const resource = event.resource;
+    if (!resource || typeof resource !== 'object')
+        return [{ type: 'invalid_value', message: '`event.resource` must be an object' }];
+    if (!('type' in resource) || !resource.type || resource.type !== 'dataset')
+        errors.push({ type: 'invalid_value', message: '`event.resource.type` must be "dataset"' });
+    if (!('id' in resource) ||
+        !resource.id ||
+        typeof resource.id !== 'string' ||
+        !(isReference(resource.id) || resource.id.split('.').length === 2))
+        errors.push({ type: 'invalid_format', message: '`event.resource.id` must be in the format <projectId>.<datasetName>' });
+    return errors;
+}
+/**
+ * Validates a media library function event configuration.
+ * Checks event trigger types and ensures required media library resource is present.
+ * @param event The event configuration to validate
+ * @returns Array of validation errors, empty if valid
+ */
+function validateMediaLibraryFunctionEvent(event) {
+    if (!event)
+        return [{ type: 'invalid_value', message: 'Function event must be provided' }];
+    if (typeof event !== 'object')
+        return [{ type: 'invalid_type', message: 'Function event must be an object' }];
+    const cleanEvent = Object.fromEntries(Object.entries(event).filter(([key]) => MEDIA_LIBRARY_EVENT_KEYS.has(key)));
+    const errors = [];
+    const fullEvent = {
+        on: cleanEvent.on || ['publish'],
+        ...cleanEvent,
+    };
+    if (!Array.isArray(fullEvent.on))
+        errors.push({ type: 'invalid_type', message: '`event.on` must be an array' });
+    if (fullEvent.resource) {
+        if (!fullEvent.resource.type || fullEvent.resource.type !== 'media-library')
+            errors.push({ type: 'invalid_value', message: '`event.resource.type` must be "media-library"' });
+    }
+    else {
+        errors.push({ type: 'missing_parameter', message: '`resource` is required for a media library function' });
+    }
+    return errors;
+}
+/**
+ * Validates a scheduled function resource configuration.
+ * @param functionResource The function resource to validate
+ * @alpha
+ * @hidden
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateScheduledFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = [];
+    if ('event' in functionResource) {
+        errors.push(...validateScheduledFunctionEvent(functionResource.event));
+    }
+    else {
+        errors.push({ type: 'missing_parameter', message: '`event` is required for a scheduled function' });
+    }
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.cron') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.cron`' });
+    }
+    if ('timezone' in functionResource) {
+        errors.push(...validateScheduledFunctionTimezone(functionResource.timezone));
+    }
+    errors.push(...validateFunction(functionResource));
+    return errors;
+}
+/**
+ * Validates a scheduled function event configuration.
+ * @param event The event configuration to validate
+ * @returns Array of validation errors, empty if valid
+ */
+function validateScheduledFunctionEvent(event) {
+    if (!event)
+        return [{ type: 'invalid_value', message: 'Function event must be provided' }];
+    if (typeof event !== 'object')
+        return [{ type: 'invalid_type', message: 'Function event must be an object' }];
+    const errors = [];
+    const hasExpression = 'expression' in event;
+    if (hasExpression) {
+        errors.push({
+            type: 'invalid_property',
+            message: 'Cannot specify `expression`. Use `defineScheduledFunction` to convert this to explicit fields',
+        });
+    }
+    if (!('minute' in event)) {
+        errors.push({
+            type: 'missing_parameter',
+            message: '`minute` must be provided',
+        });
+    }
+    else if (typeof event.minute !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`minute` must be a string' });
+    }
+    else if (!MINUTES.test(event.minute)) {
+        errors.push({
+            type: 'invalid_value',
+            message: `Invalid minute field: "${event.minute}"
+
+The minute field must be:
+- A number from 0 to 59
+- A range like 0-10
+- A step value like */5
+- A list like 0,15,30,45
+`,
+        });
+    }
+    if (!('hour' in event)) {
+        errors.push({
+            type: 'missing_parameter',
+            message: '`hour` must be provided',
+        });
+    }
+    else if (typeof event.hour !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`hour` must be a string' });
+    }
+    else if (!HOURS.test(event.hour)) {
+        errors.push({
+            type: 'invalid_value',
+            message: `Invalid hour field: "${event.hour}"
+
+The hour field must be:
+- A number from 0 to 23
+- A range like 9-17
+- A step value like */2
+- A list like 0,6,12,18
+`,
+        });
+    }
+    if (!('dayOfMonth' in event)) {
+        errors.push({
+            type: 'missing_parameter',
+            message: '`dayOfMonth` must be provided',
+        });
+    }
+    else if (typeof event.dayOfMonth !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`dayOfMonth` must be a string' });
+    }
+    else if (!DAY_OF_MONTH.test(event.dayOfMonth)) {
+        errors.push({
+            type: 'invalid_value',
+            message: `Invalid dayOfMonth field: "${event.dayOfMonth}"
+
+The day-of-month field must be:
+- A number from 1 to 31
+- A range like 1-15
+- A step value like */2
+- A list like 1,15,31
+`,
+        });
+    }
+    if (!('month' in event)) {
+        errors.push({
+            type: 'missing_parameter',
+            message: '`month` must be provided',
+        });
+    }
+    else if (typeof event.month !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`month` must be a string' });
+    }
+    else if (!MONTH.test(event.month)) {
+        errors.push({
+            type: 'invalid_value',
+            message: `Invalid month field: "${event.month}"
+
+The month field must be:
+- A number from 1 to 12
+- A range like 1-6
+- A step value like */2
+- A list like 1,4,7,10
+- A month name like JAN or OCT-DEC
+`,
+        });
+    }
+    if (!('dayOfWeek' in event)) {
+        errors.push({
+            type: 'missing_parameter',
+            message: '`dayOfWeek` must be provided',
+        });
+    }
+    else if (typeof event.dayOfWeek !== 'string') {
+        errors.push({ type: 'invalid_type', message: '`dayOfWeek` must be a string' });
+    }
+    else if (!DAY_OF_WEEK.test(event.dayOfWeek)) {
+        errors.push({
+            type: 'invalid_value',
+            message: `Invalid dayOfWeek field: "${event.dayOfWeek}"
+
+The day-of-week field must be:
+- A number from 0 to 7
+- Sunday can be specified using 0 or 7
+- A range like MON-FRI
+- A step value like */2
+- A list like MON,WED,FRI
+`,
+        });
+    }
+    return errors;
+}
+/**
+ * Validates a scheduled function timezone configuration.
+ * @param timezone The timezone to validate
+ * @returns Array of validation errors, empty if valid
+ */
+function validateScheduledFunctionTimezone(timezone) {
+    if (typeof timezone !== 'string')
+        return [{ type: 'invalid_type', message: 'Function timezone must be a string' }];
+    const errors = [];
+    try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    }
+    catch {
+        errors.push({
+            type: 'invalid_value',
+            message: '`timezone` must be a valid IANA timezone',
+        });
+    }
+    return errors;
+}
+/**
+ * Validates a sync tag invalidate function resource configuration.
+ * @param functionResource The function resource to validate
+ * @alpha
+ * @hidden
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateSyncTagInvalidateFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = [];
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.sync-tag-invalidate') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.sync-tag-invalidate`' });
+    }
+    if ('event' in functionResource) {
+        errors.push(...validateFunctionEventResourceDataset(functionResource.event));
+    }
+    errors.push(...validateFunction(functionResource));
+    return errors;
+}
+/**
+ * Validates a queue function resource configuration.
+ * @param functionResource The function resource to validate
+ * @alpha
+ * @hidden
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateQueueFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = [];
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.queue') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.queue`' });
+    }
+    if ('event' in functionResource) {
+        errors.push(...validateQueueFunctionEvent(functionResource.event));
+    }
+    errors.push(...validateFunction(functionResource));
+    return errors;
+}
+function validateQueueFunctionEvent(event) {
+    if (!event || typeof event !== 'object')
+        return [{ type: 'invalid_type', message: '`event` must be an object' }];
+    const errors = [];
+    if (!('concurrency' in event) || typeof event.concurrency !== 'number') {
+        errors.push({ type: 'invalid_type', message: '`event.concurrency` must be a number' });
+    }
+    if ('concurrency' in event && typeof event.concurrency === 'number' && event.concurrency < 1) {
+        errors.push({ type: 'invalid_type', message: '`event.concurrency` must be at least 1' });
+    }
+    if (!('fifo' in event) || typeof event.fifo !== 'boolean') {
+        errors.push({ type: 'invalid_type', message: '`event.fifo` must be a boolean' });
+    }
+    if (!('dlq' in event) || typeof event.dlq !== 'boolean') {
+        errors.push({ type: 'invalid_type', message: '`event.dlq` must be a boolean' });
+    }
+    return errors;
+}
+/**
+ * Validates a event function resource configuration.
+ * @param functionResource The function resource to validate
+ * @alpha
+ * @hidden
+ * @category Functions Types
+ * @returns Array of validation errors, empty if valid
+ */
+export function validateEventFunction(functionResource) {
+    if (!functionResource)
+        return [{ type: 'invalid_value', message: 'Function config must be provided' }];
+    if (typeof functionResource !== 'object')
+        return [{ type: 'invalid_type', message: 'Function config must be an object' }];
+    const errors = [];
+    if ('type' in functionResource && functionResource.type !== 'sanity.function.event') {
+        errors.push({ type: 'invalid_value', message: '`type` must be `sanity.function.event`' });
+    }
+    errors.push(...validateFunction(functionResource));
+    return errors;
+}
+//# sourceMappingURL=functions.js.map

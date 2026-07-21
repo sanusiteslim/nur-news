@@ -1,0 +1,790 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 120
+              }
+            ]
+          }
+        ],
+        "name": "headline",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "headline",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 200
+              }
+            ]
+          }
+        ],
+        "name": "excerpt",
+        "type": "text"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Nigeria",
+              "value": "nigeria"
+            },
+            {
+              "title": "Africa",
+              "value": "africa"
+            },
+            {
+              "title": "World",
+              "value": "world"
+            },
+            {
+              "title": "Sports",
+              "value": "sports"
+            },
+            {
+              "title": "Opinion",
+              "value": "opinion"
+            },
+            {
+              "title": "Business",
+              "value": "business"
+            },
+            {
+              "title": "Tech",
+              "value": "tech"
+            },
+            {
+              "title": "Culture",
+              "value": "culture"
+            }
+          ],
+          "layout": "radio"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "nigeria",
+                  "africa",
+                  "world",
+                  "sports",
+                  "opinion",
+                  "business",
+                  "tech",
+                  "culture"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Breaking",
+              "value": "breaking"
+            },
+            {
+              "title": "Politics",
+              "value": "politics"
+            },
+            {
+              "title": "Economy",
+              "value": "economy"
+            },
+            {
+              "title": "Football",
+              "value": "football"
+            },
+            {
+              "title": "AFCON",
+              "value": "afcon"
+            },
+            {
+              "title": "Election",
+              "value": "election"
+            },
+            {
+              "title": "Climate",
+              "value": "climate"
+            },
+            {
+              "title": "Security",
+              "value": "security"
+            }
+          ]
+        },
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "tags",
+        "type": "array"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ]
+              }
+            ],
+            "name": "alt",
+            "type": "string",
+            "title": "Alt Text"
+          },
+          {
+            "name": "caption",
+            "type": "string"
+          }
+        ],
+        "name": "featuredImage",
+        "type": "image"
+      },
+      {
+        "of": [
+          {
+            "lists": [
+              {
+                "value": "bullet",
+                "title": "Bulleted list"
+              },
+              {
+                "value": "number",
+                "title": "Numbered list"
+              }
+            ],
+            "marks": {
+              "annotations": [
+                {
+                  "i18nTitleKey": "inputs.portable-text.annotation.link",
+                  "options": {
+                    "modal": {
+                      "type": "popover"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "validation": [
+                        {
+                          "level": "error",
+                          "rules": [
+                            {
+                              "flag": "uri",
+                              "constraint": {
+                                "options": {
+                                  "scheme": [
+                                    "/^http$/",
+                                    "/^https$/",
+                                    "/^tel$/",
+                                    "/^mailto$/"
+                                  ],
+                                  "allowRelative": true,
+                                  "relativeOnly": false,
+                                  "allowCredentials": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "description": "A valid web, email, phone, or relative link.",
+                      "name": "href",
+                      "type": "url",
+                      "title": "Link"
+                    }
+                  ],
+                  "name": "link",
+                  "type": "object"
+                }
+              ],
+              "decorators": [
+                {
+                  "value": "strong",
+                  "title": "Strong"
+                },
+                {
+                  "value": "em",
+                  "title": "Italic"
+                },
+                {
+                  "value": "code",
+                  "title": "Code"
+                },
+                {
+                  "value": "underline",
+                  "title": "Underline"
+                },
+                {
+                  "value": "strike-through",
+                  "title": "Strike"
+                }
+              ]
+            },
+            "of": [],
+            "styles": [
+              {
+                "value": "normal",
+                "title": "Normal"
+              },
+              {
+                "value": "h1",
+                "title": "Heading 1"
+              },
+              {
+                "value": "h2",
+                "title": "Heading 2"
+              },
+              {
+                "value": "h3",
+                "title": "Heading 3"
+              },
+              {
+                "value": "h4",
+                "title": "Heading 4"
+              },
+              {
+                "value": "h5",
+                "title": "Heading 5"
+              },
+              {
+                "value": "h6",
+                "title": "Heading 6"
+              },
+              {
+                "value": "blockquote",
+                "title": "Quote"
+              }
+            ],
+            "type": "block"
+          },
+          {
+            "options": {
+              "hotspot": true
+            },
+            "fields": [
+              {
+                "name": "alt",
+                "type": "string",
+                "title": "Alt Text"
+              },
+              {
+                "name": "caption",
+                "type": "string"
+              }
+            ],
+            "type": "image"
+          }
+        ],
+        "name": "body",
+        "type": "array"
+      },
+      {
+        "initialValue": false,
+        "name": "isBreaking",
+        "type": "boolean",
+        "title": "Breaking News?"
+      },
+      {
+        "initialValue": false,
+        "name": "hasLiveUpdates",
+        "type": "boolean",
+        "title": "Live Updates?"
+      },
+      {
+        "of": [
+          {
+            "fields": [
+              {
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "timestamp",
+                "type": "datetime"
+              },
+              {
+                "rows": 2,
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "updateText",
+                "type": "text",
+                "title": "Update"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "hidden": "conditional",
+        "name": "liveUpdates",
+        "type": "array"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "to": [
+          {
+            "type": "author"
+          }
+        ],
+        "name": "author",
+        "type": "reference"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "publishedAt",
+        "type": "datetime"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Draft",
+              "value": "draft"
+            },
+            {
+              "title": "Published",
+              "value": "published"
+            },
+            {
+              "title": "Scheduled",
+              "value": "scheduled"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "draft",
+        "name": "status",
+        "type": "string"
+      }
+    ],
+    "name": "article",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "name"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Editor-in-Chief",
+              "value": "editor-in-chief"
+            },
+            {
+              "title": "Managing Editor",
+              "value": "managing-editor"
+            },
+            {
+              "title": "Staff Writer",
+              "value": "staff-writer"
+            },
+            {
+              "title": "Contributor",
+              "value": "contributor"
+            },
+            {
+              "title": "Columnist",
+              "value": "columnist"
+            }
+          ]
+        },
+        "name": "role",
+        "type": "string"
+      },
+      {
+        "rows": 4,
+        "name": "bio",
+        "type": "text"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "photo",
+        "type": "image"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "name": "twitter",
+        "type": "url",
+        "title": "Twitter/X"
+      },
+      {
+        "name": "email",
+        "type": "string"
+      }
+    ],
+    "name": "author",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "Homepage",
+        "readOnly": true,
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "to": [
+          {
+            "type": "article"
+          }
+        ],
+        "name": "heroStory",
+        "type": "reference"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 5
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "to": [
+              {
+                "type": "article"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to article"
+          }
+        ],
+        "name": "sidebarStories",
+        "type": "array"
+      },
+      {
+        "initialValue": false,
+        "name": "showLiveUpdates",
+        "type": "boolean"
+      },
+      {
+        "to": [
+          {
+            "type": "article"
+          }
+        ],
+        "hidden": "conditional",
+        "name": "liveUpdatesSource",
+        "type": "reference"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "Latest",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "to": [
+              {
+                "type": "article"
+              }
+            ],
+            "name": "featured",
+            "type": "reference",
+            "title": "Featured Article"
+          },
+          {
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "max",
+                    "constraint": 4
+                  }
+                ]
+              }
+            ],
+            "of": [
+              {
+                "to": [
+                  {
+                    "type": "article"
+                  }
+                ],
+                "type": "reference",
+                "title": "Reference to article"
+              }
+            ],
+            "name": "list",
+            "type": "array",
+            "title": "List Articles"
+          }
+        ],
+        "name": "highlightSection",
+        "type": "object",
+        "title": "Highlight Section (2-Column)"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "More Stories",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "options": {
+              "list": [
+                {
+                  "title": "Sports",
+                  "value": "sports"
+                },
+                {
+                  "title": "Nigeria",
+                  "value": "nigeria"
+                },
+                {
+                  "title": "Africa",
+                  "value": "africa"
+                },
+                {
+                  "title": "World",
+                  "value": "world"
+                }
+              ]
+            },
+            "name": "category",
+            "type": "string",
+            "title": "Filter by Category"
+          },
+          {
+            "initialValue": 6,
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "min",
+                    "constraint": 3
+                  },
+                  {
+                    "flag": "max",
+                    "constraint": 9
+                  }
+                ]
+              }
+            ],
+            "name": "count",
+            "type": "number",
+            "title": "Number of Articles"
+          }
+        ],
+        "name": "gridSection",
+        "type": "object",
+        "title": "Grid Section (3-Column Cards)"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "Opinion",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "initialValue": 4,
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "min",
+                    "constraint": 2
+                  },
+                  {
+                    "flag": "max",
+                    "constraint": 6
+                  }
+                ]
+              }
+            ],
+            "name": "count",
+            "type": "number",
+            "title": "Number of Articles"
+          }
+        ],
+        "name": "opinionSection",
+        "type": "object"
+      }
+    ],
+    "name": "homepage",
+    "type": "document",
+    "title": "Homepage Layout"
+  }
+]
