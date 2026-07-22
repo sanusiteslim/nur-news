@@ -6,7 +6,7 @@ import SectionHighlight from '@/components/sections/SectionHighlight'
 import SectionGrid from '@/components/sections/SectionGrid'
 import SectionOpinion from '@/components/sections/SectionOpinion'
 
-export const revalidate = 60
+export const revalidate = 20
 
 export default async function HomePage() {
   const [homepage, breaking] = await Promise.all([
