@@ -31,10 +31,26 @@ export const homepageQuery = `
       }
     },
     gridSection{
-      title, category, count
+      title, category, count,
+      "articles": *[
+        _type == "article" &&
+        status == "published" &&
+        (!defined(^.category) || category == ^.category)
+      ] | order(publishedAt desc) [0...9] {
+        headline, slug, excerpt, featuredImage, category, publishedAt,
+        "author": author->{name, photo}
+      }
     },
     opinionSection{
-      title, count
+      title, count,
+      "articles": *[
+        _type == "article" &&
+        status == "published" &&
+        category == "opinion"
+      ] | order(publishedAt desc) [0...6] {
+        headline, slug, excerpt, featuredImage, category, publishedAt,
+        "author": author->{name, photo}
+      }
     }
   }
 `
