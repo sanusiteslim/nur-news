@@ -7,7 +7,7 @@ import Footer from '@/components/layout/Footer'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'NUR — Breaking News, Nigeria, Africa & World',
+  title: 'NUR Report',
   description: 'Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.',
 }
 

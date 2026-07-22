@@ -36,7 +36,7 @@ export default function Navbar() {
               <path fill="#1A1A1A" d="M60.38,108.74c-6.19,0-11.6-1.41-16.24-4.24-4.64-2.83-8.24-6.75-10.8-11.76-2.56-5.01-3.84-10.77-3.84-17.28V28.1h20.16v45.76c0,5.98,1.46,10.46,4.4,13.44,2.93,2.99,7.12,4.48,12.56,4.48,6.19,0,10.99-2.05,14.4-6.16,3.41-4.1,5.12-9.84,5.12-17.2V28.1h20.16v79.36h-19.84v-10.4h-2.88c-1.28,2.67-3.68,5.28-7.2,7.84-3.52,2.56-8.86,3.84-16,3.84Z"/>
               <path fill="#1B5E20" d="M0,80.64V1.28h19.84v10.4h2.88c1.28-2.77,3.68-5.41,7.2-7.92,3.52-2.5,8.85-3.76,16-3.76,6.18,0,11.6,1.42,16.24,4.24,4.64,2.83,8.24,6.72,10.8,11.68,2.56,4.96,3.84,10.75,3.84,17.36v47.36h-20.16v-45.76c0-5.97-1.47-10.45-4.4-13.44-2.94-2.98-7.12-4.48-12.56-4.48-6.19,0-10.99,2.06-14.4,6.16-3.42,4.11-5.12,9.84-5.12,17.2v40.32H0Z"/>
             </svg>
-            <span className="text-brand-800 font-bold text-xl tracking-tight hidden sm:block">NUR</span>
+            <span className="text-brand-800 font-bold text-xl tracking-tight hidden sm:block">NURR</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-1">
@@ -48,7 +48,7 @@ export default function Navbar() {
             ))}
             <div className="relative">
               <button onClick={() => setMoreOpen(!moreOpen)} className="px-3 py-2 text-sm font-medium text-text-primary hover:text-brand-700 flex items-center gap-1">
-                More <span className="text-xs">▼</span>
+                More <span className="text-xs,">▼</span>
               </button>
               {moreOpen && (
                 <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">

@@ -14,7 +14,7 @@ export default function ArticleCard({ article }: { article: any }) {
             <Image src={urlForImage(article.featuredImage).width(600).height(338).url()} alt={article.featuredImage.alt || article.headline} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
           ) : (
             <div className="w-full h-full bg-brand-100 flex items-center justify-center">
-              <span className="text-brand-800 font-bold text-2xl">NUR</span>
+              <span className="text-brand-800 font-bold text-2xl">NURR</span>
             </div>
           )}
         </div>
