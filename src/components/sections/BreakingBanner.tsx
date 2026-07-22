@@ -11,7 +11,7 @@ export default function BreakingBanner({ article }: { article: any }) {
     <div className="bg-accent-red">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-col md:flex-row md:items-center gap-4">
-               <div className="" style= {{paddingLeft:'68px',paddingTop:'10px'}} >
+               <div className="flex-shrink-0">
             <span className="inline-block bg-white text-accent-red text-xs font-bold uppercase tracking-widest px-3 py-1 rounded">
               Breaking
             </span>

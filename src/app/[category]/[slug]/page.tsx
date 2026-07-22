@@ -5,7 +5,7 @@ import { urlForImage } from '@/lib/image'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 
-export const revalidate = 60
+export const revalidate = 10
 
 export default async function ArticlePage({ params }: { params: { category: string; slug: string } }) {
   const article = await client.fetch(articleQuery, { slug: params.slug })

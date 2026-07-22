@@ -2,7 +2,7 @@ import { client, categoryQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import ArticleCard from '@/components/ui/ArticleCard'
 
-export const revalidate = 60
+export const revalidate = 10
 
 const categoryLabels: Record<string, string> = {
   nigeria: 'Nigeria',

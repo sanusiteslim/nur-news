@@ -48,7 +48,7 @@ export default function Navbar() {
             ))}
             <div className="relative">
               <button onClick={() => setMoreOpen(!moreOpen)} className="px-3 py-2 text-sm font-medium text-text-primary hover:text-brand-700 flex items-center gap-1">
-                More <span className="text-xs,">▼</span>
+                More <span className="text-xs">▼</span>
               </button>
               {moreOpen && (
                 <div className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">

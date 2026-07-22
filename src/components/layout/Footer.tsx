@@ -15,7 +15,7 @@ const footerLinks = {
     { label: 'Environment', href: '/environment' },
   ],
   'Company': [
-    { label: 'About NURR', href: './about' },
+    { label: 'About NURR', href: '/about' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact', href: '/contact' },
     { label: 'Advertise', href: '/advertise' },

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { urlForImage } from '@/lib/image'
 import { formatDistanceToNow } from 'date-fns'
+import SectionHighlight from '@/components/sections/SectionHighlight'
 
 export default function ArticleCard({ article }: { article: any }) {
   if (!article) return null
