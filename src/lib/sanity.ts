@@ -76,3 +76,15 @@ export const categoryQuery = (category: string) => `
     "author": author->{name, photo}
   }
 `
+
+export const relatedArticlesQuery = `
+  *[
+    _type == "article" &&
+    status == "published" &&
+    category == $category &&
+    slug.current != $slug
+  ] | order(publishedAt desc) [0...3] {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`
