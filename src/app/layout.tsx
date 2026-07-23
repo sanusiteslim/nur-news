@@ -9,11 +9,15 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 const siteDescription = 'Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.'
 
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
     default: 'NUR Report',
     template: '%s | NUR Report',
+  },
+  verification: {
+    google: "J_jRy_4vHvjTX-mMnvVRbbOeEj_hkijiayhAA-5DAHs", // Paste just the long code string here
   },
   description: siteDescription,
   openGraph: {
