@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getSiteUrl } from '@/lib/site'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -43,12 +44,18 @@ formatDetection: {
   },
 }
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans antialiased bg-white text-text-primary">
+        {/* Your sticky header, main pages, and footer layout layout */}        
         <Navbar />
         <main className="min-h-screen">{children}</main>
         <Footer />
+        {/* 2. Render the analytics script only if the ID exists */}
+        {gaId && <GoogleAnalytics gaId={gaId} />}
+        
       </body>
     </html>
   )
