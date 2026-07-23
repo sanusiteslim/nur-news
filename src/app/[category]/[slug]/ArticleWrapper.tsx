@@ -9,7 +9,7 @@ export default function ArticleWrapper({ children }: { children: React.ReactNode
     // Controls the exact loader duration (3000ms = 3 seconds)
     const loaderTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(loaderTimer);
   }, []);
