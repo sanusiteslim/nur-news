@@ -10,6 +10,41 @@ import RelatedArticles from '@/components/article/RelatedArticles'
 
 export const revalidate = 10
 
+import type { Metadata } from 'next'
+// (add this import alongside your existing ones at the top)
+
+export async function generateMetadata({ params }: { params: { category: string; slug: string } }): Promise<Metadata> {
+  const article = await client.fetch(articleQuery, { slug: params.slug })
+  if (!article) return {}
+
+  const path = `/${params.category}/${params.slug}`
+  const ogImage = article.featuredImage
+    ? urlForImage(article.featuredImage).width(1200).height(630).url()
+    : undefined
+
+  return {
+    title: article.headline,
+    description: article.excerpt,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'article',
+      title: article.headline,
+      description: article.excerpt,
+      url: path,
+      publishedTime: article.publishedAt,
+      images: ogImage
+        ? [{ url: ogImage, width: 1200, height: 630, alt: article.featuredImage?.alt || article.headline }]
+        : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.headline,
+      description: article.excerpt,
+      images: ogImage ? [ogImage] : undefined,
+    },
+  }
+}
+
 export default async function ArticlePage({ params }: { params: { category: string; slug: string } }) {
   const article = await client.fetch(articleQuery, { slug: params.slug })
 

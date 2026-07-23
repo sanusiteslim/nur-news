@@ -3,14 +3,31 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import { getSiteUrl } from '@/lib/site'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
-export const metadata: Metadata = {
-  title: 'NUR Report',
-  description: 'Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.',
-}
+const siteDescription = 'Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.'
 
+export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  title: {
+    default: 'NUR Report',
+    template: '%s | NUR Report',
+  },
+  description: siteDescription,
+  openGraph: {
+    type: 'website',
+    siteName: 'NUR Report',
+    title: 'NUR Report',
+    description: siteDescription,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NUR Report',
+    description: siteDescription,
+  },
+}
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
