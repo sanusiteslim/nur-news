@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { getSiteUrl } from '@/lib/site'
 
+
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 const siteDescription = 'Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.'
@@ -19,6 +20,15 @@ export const metadata: Metadata = {
   verification: {
     google: "J_jRy_4vHvjTX-mMnvVRbbOeEj_hkijiayhAA-5DAHs", // Paste just the long code string here
   },
+  appleWebApp: {
+  capable: true,
+  statusBarStyle: 'default',
+  title: 'NURR',
+},
+formatDetection: {
+  telephone: false,
+},
+
   description: siteDescription,
   openGraph: {
     type: 'website',
