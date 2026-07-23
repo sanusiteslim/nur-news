@@ -18,6 +18,14 @@ const categoryLabels: Record<string, string> = {
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   const articles = await client.fetch(categoryQuery(params.category))
 
+  const validCategories = ['nigeria', 'africa', 'world', 'sports', 'video', 'business', 'tech', 'culture', 'environment'] 
+
+  // THE FIX: If the typed path is random text, throw a 404 immediately
+  if (!validCategories.includes(params.category.toLowerCase())) {
+    return notFound()
+  }
+
+  // If it IS a real category but just happens to have 0 articles right now:
   if (!articles || articles.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -25,7 +33,8 @@ export default async function CategoryPage({ params }: { params: { category: str
         <p className="text-text-secondary">No articles yet. Add some in Sanity CMS.</p>
       </div>
     )
-  }
+    }
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
