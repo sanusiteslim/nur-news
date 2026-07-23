@@ -7,15 +7,14 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
+import ArticleWrapper from './ArticleWrapper'
+import type { Metadata } from 'next'
 
 export const revalidate = 10
 
-import type { Metadata } from 'next'
-// (add this import alongside your existing ones at the top)
-
 export async function generateMetadata({ params }: { params: { category: string; slug: string } }): Promise<Metadata> {
   const article = await client.fetch(articleQuery, { slug: params.slug })
-  if (!article) return {}
+  if (!article) return { title: 'Article Not Found | NURR' }
 
   const path = `/${params.category}/${params.slug}`
   const ogImage = article.featuredImage
@@ -23,7 +22,7 @@ export async function generateMetadata({ params }: { params: { category: string;
     : undefined
 
   return {
-    title: article.headline,
+    title: `${article.headline} | NURR`,
     description: article.excerpt,
     alternates: { canonical: path },
     openGraph: {
@@ -58,73 +57,75 @@ export default async function ArticlePage({ params }: { params: { category: stri
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">{article.category}</span>
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mt-2 mb-4 leading-tight">{article.headline}</h1>
-      <p className="text-lg text-text-secondary mb-6">{article.excerpt}</p>
+    <ArticleWrapper>
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">{article.category}</span>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mt-2 mb-4 leading-tight">{article.headline}</h1>
+        <p className="text-lg text-text-secondary mb-6">{article.excerpt}</p>
 
-      <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          {article.author?.photo && (
-            <Image src={urlForImage(article.author.photo).width(48).height(48).url()} alt={article.author.name} width={48} height={48} className="rounded-full" />
-          )}
-          <div>
-            <p className="font-semibold text-text-primary">{article.author?.name}</p>
-            <p className="text-sm text-text-muted">
-              {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
-              {article.author?.role && ` · ${article.author.role}`}
-            </p>
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            {article.author?.photo && (
+              <Image src={urlForImage(article.author.photo).width(48).height(48).url()} alt={article.author.name} width={48} height={48} className="rounded-full" />
+            )}
+            <div>
+              <p className="font-semibold text-text-primary">{article.author?.name}</p>
+              <p className="text-sm text-text-muted">
+                {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
+                {article.author?.role && ` · ${article.author.role}`}
+              </p>
+            </div>
           </div>
+
+          <ShareButtons url={shareUrl} title={article.headline} />
         </div>
 
-        <ShareButtons url={shareUrl} title={article.headline} />
-      </div>
+        {article.featuredImage && (
+          <figure className="mb-8">
+            <Image src={urlForImage(article.featuredImage).width(1200).height(675).url()} alt={article.featuredImage.alt || article.headline} width={1200} height={675} className="w-full rounded-lg" priority />
+            {article.featuredImage.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>}
+          </figure>
+        )}
 
-      {article.featuredImage && (
-        <figure className="mb-8">
-          <Image src={urlForImage(article.featuredImage).width(1200).height(675).url()} alt={article.featuredImage.alt || article.headline} width={1200} height={675} className="w-full rounded-lg" priority />
-          {article.featuredImage.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>}
-        </figure>
-      )}
-
-      <div className="prose prose-lg max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-a:text-brand-700">
-        <PortableText value={article.body} />
-      </div>
-
-      {article.tags && article.tags.length > 0 && (
-        <div className="mt-10 pt-6 border-t border-gray-200">
-          <div className="flex flex-wrap gap-2">
-            {article.tags.map((tag: string) => (
-              <span key={tag} className="px-3 py-1 bg-brand-50 text-brand-800 text-sm rounded-full capitalize">{tag}</span>
-            ))}
-          </div>
+        <div className="prose prose-lg max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-a:text-brand-700">
+          <PortableText value={article.body} />
         </div>
-      )}
 
-      {article.hasLiveUpdates && article.liveUpdates && article.liveUpdates.length > 0 && (
-        <div className="mt-12 bg-surface-offwhite rounded-lg p-6">
-          <h3 className="flex items-center gap-2 text-lg font-bold mb-4">
-            <span className="live-dot" />
-            LIVE UPDATES
-          </h3>
-          <div className="space-y-4">
-            {article.liveUpdates.map((update: any, i: number) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-brand-700' : 'bg-gray-300'}`} />
-                  {i < article.liveUpdates.length - 1 && <div className="w-0.5 flex-1 bg-gray-300 mt-1" />}
+        {article.tags && article.tags.length > 0 && (
+          <div className="mt-10 pt-6 border-t border-gray-200">
+            <div className="flex flex-wrap gap-2">
+              {article.tags.map((tag: string) => (
+                <span key={tag} className="px-3 py-1 bg-brand-50 text-brand-800 text-sm rounded-full capitalize">{tag}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {article.hasLiveUpdates && article.liveUpdates && article.liveUpdates.length > 0 && (
+          <div className="mt-12 bg-surface-offwhite rounded-lg p-6">
+            <h3 className="flex items-center gap-2 text-lg font-bold mb-4">
+              <span className="live-dot" />
+              LIVE UPDATES
+            </h3>
+            <div className="space-y-4">
+              {article.liveUpdates.map((update: any, i: number) => (
+                <div key={i} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-brand-700' : 'bg-gray-300'}`} />
+                    {i < article.liveUpdates.length - 1 && <div className="w-0.5 flex-1 bg-gray-300 mt-1" />}
+                  </div>
+                  <div>
+                    <p className="text-sm text-text-muted">{formatDistanceToNow(new Date(update.timestamp), { addSuffix: true })}</p>
+                    <p className="text-text-primary">{update.updateText}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-text-muted">{formatDistanceToNow(new Date(update.timestamp), { addSuffix: true })}</p>
-                  <p className="text-text-primary">{update.updateText}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <RelatedArticles articles={relatedArticles} />
-    </article>
+        <RelatedArticles articles={relatedArticles} />
+      </article>
+    </ArticleWrapper>
   )
 }
