@@ -18,7 +18,7 @@ const categoryLabels: Record<string, string> = {
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   const articles = await client.fetch(categoryQuery(params.category))
 
-  const validCategories = ['nigeria', 'africa', 'world', 'sports', 'video', 'business', 'tech', 'culture', 'environment'] 
+  const validCategories = ['nigeria', 'africa', 'world', 'sports', 'video', 'business', 'tech', 'culture', 'environment', 'opinion'] 
 
   // THE FIX: If the typed path is random text, throw a 404 immediately
   if (!validCategories.includes(params.category.toLowerCase())) {
