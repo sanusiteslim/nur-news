@@ -87,9 +87,50 @@ export default async function ArticlePage({ params }: { params: { category: stri
           </figure>
         )}
 
-        <div className="prose prose-lg max-w-none prose-headings:text-text-primary prose-p:text-text-primary prose-a:text-brand-700">
-          <PortableText value={article.body} />
-        </div>
+        <div className="article-body">
+  <PortableText 
+    value={article.body} 
+    components={{
+      block: {
+        normal: ({ children }: any) => <p className="mb-6 text-lg leading-relaxed text-text-primary">{children}</p>,
+        h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-10 mb-4 text-text-primary">{children}</h2>,
+        h3: ({ children }: any) => <h3 className="text-xl font-semibold mt-8 mb-3 text-text-primary">{children}</h3>,
+        blockquote: ({ children }: any) => (
+          <blockquote className="border-l-4 border-brand-700 pl-6 italic text-text-secondary my-8 bg-surface-offwhite py-4 pr-4">
+            {children}
+          </blockquote>
+        ),
+      },
+      list: {
+        bullet: ({ children }: any) => <ul className="list-disc pl-6 mb-6 space-y-2 text-text-primary">{children}</ul>,
+        number: ({ children }: any) => <ol className="list-decimal pl-6 mb-6 space-y-2 text-text-primary">{children}</ol>,
+      },
+      marks: {
+        link: ({ value, children }: any) => (
+          <a href={value?.href} className="text-brand-700 underline underline-offset-2 hover:text-brand-800" target="_blank" rel="noopener noreferrer">
+            {children}
+          </a>
+        ),
+        strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
+        em: ({ children }: any) => <em className="italic">{children}</em>,
+      },
+      types: {
+        image: ({ value }: any) => (
+          <figure className="my-8">
+            <Image
+              src={urlForImage(value).width(800).height(500).url()}
+              alt={value.alt || ''}
+              width={800}
+              height={500}
+              className="w-full rounded-lg"
+            />
+            {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
+          </figure>
+        ),
+      },
+    }}
+  />
+</div>
 
         {article.tags && article.tags.length > 0 && (
           <div className="mt-10 pt-6 border-t border-gray-200">

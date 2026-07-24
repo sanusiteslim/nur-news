@@ -12,6 +12,14 @@
   }
 }
 
+.article-body p {
+  margin-bottom: 1.5rem; /* This creates the Al Jazeera paragraph gap */
+}
+
+.article-body p:last-child {
+  margin-bottom: 0;
+}
+
 @layer components {
   .section-title {
     @apply text-sm font-semibold uppercase tracking-wider text-brand-800 border-l-4 border-brand-700 pl-3;
