@@ -1,5 +1,6 @@
 import { createClient } from 'next-sanity'
 import imageUrlBuilder from '@sanity/image-url'
+import { groq } from 'next-sanity'
 
 export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
@@ -89,5 +90,43 @@ export const relatedArticlesQuery = `
   ] | order(publishedAt desc) [0...3] {
     headline, slug, excerpt, featuredImage, category, publishedAt,
     "author": author->{name, photo}
+  }
+`
+
+// Video articles: either category='video' OR has a videoUrl/videoFile
+export const videoArticlesQuery = groq`
+  *[_type == "article" && (category == "video" || defined(videoUrl) || defined(videoFile)) && status == "published"] | order(publishedAt desc) {
+    _id,
+    headline,
+    slug,
+    category,
+    excerpt,
+    featuredImage,
+    videoUrl,
+    videoDuration,
+    publishedAt,
+    author->{
+      name,
+      photo
+    }
+  }
+`
+
+// Latest video for hero section
+export const latestVideoQuery = groq`
+  *[_type == "article" && (category == "video" || defined(videoUrl) || defined(videoFile)) && status == "published"] | order(publishedAt desc)[0] {
+    _id,
+    headline,
+    slug,
+    category,
+    excerpt,
+    featuredImage,
+    videoUrl,
+    videoDuration,
+    publishedAt,
+    author->{
+      name,
+      photo
+    }
   }
 `

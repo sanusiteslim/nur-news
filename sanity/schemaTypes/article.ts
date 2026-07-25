@@ -70,52 +70,61 @@ export default {
       ],
       validation: (Rule: any) => Rule.required(),
     },
-
-
-{
-  name: 'body',
-  title: 'Body',
-  type: 'array',
-  of: [
     {
-      type: 'block',
-      styles: [
-        { title: 'Normal', value: 'normal' },
-        { title: 'Heading 2', value: 'h2' },
-        { title: 'Heading 3', value: 'h3' },
-        { title: 'Quote', value: 'blockquote' },
-      ],
-      lists: [
-        { title: 'Bullet', value: 'bullet' },
-        { title: 'Numbered', value: 'number' },
-      ],
-      marks: {
-        decorators: [
-          { title: 'Strong', value: 'strong' },
-          { title: 'Emphasis', value: 'em' },
-        ],
-        annotations: [
-          {
-            name: 'link',
-            type: 'object',
-            title: 'URL',
-            fields: [{ name: 'href', type: 'url', title: 'URL' }],
+      name: 'body',
+      title: 'Body',
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          styles: [
+            { title: 'Normal', value: 'normal' },
+            { title: 'Heading 2', value: 'h2' },
+            { title: 'Heading 3', value: 'h3' },
+            { title: 'Quote', value: 'blockquote' },
+          ],
+          lists: [
+            { title: 'Bullet', value: 'bullet' },
+            { title: 'Numbered', value: 'number' },
+          ],
+          marks: {
+            decorators: [
+              { title: 'Strong', value: 'strong' },
+              { title: 'Emphasis', value: 'em' },
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'URL',
+                fields: [{ name: 'href', type: 'url', title: 'URL' }],
+              },
+            ],
           },
-        ],
-      },
-    },
-    {
-      type: 'image',
-      options: { hotspot: true },
-      fields: [
-        { name: 'alt', type: 'string', title: 'Alt Text' },
-        { name: 'caption', type: 'string', title: 'Caption' },
+        },
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            { name: 'alt', type: 'string', title: 'Alt Text' },
+            { name: 'caption', type: 'string', title: 'Caption' },
+          ],
+        },
       ],
     },
-  ],
-},
-
-
+    {
+      name: 'videoUrl',
+      title: 'Video URL (YouTube/Vimeo)',
+      type: 'url',
+      description: 'Paste a YouTube or Vimeo link to embed a video',
+    },
+    {
+      name: 'videoDuration',
+      title: 'Video Duration',
+      type: 'string',
+      description: 'e.g. 3:45 or 12:30',
+      hidden: ({ parent }: any) => !parent?.videoUrl && !parent?.videoFile,
+    },
     {
       name: 'isBreaking',
       title: 'Breaking News?',
