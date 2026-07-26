@@ -69,6 +69,7 @@ export const articleQuery = `
   *[_type == "article" && slug.current == $slug][0] {
     headline, slug, excerpt, category, tags,
     featuredImage, body, isBreaking, hasLiveUpdates, liveUpdates,
+    videoUrl, videoDuration,
     publishedAt,
     "author": author->{name, photo, bio, slug, role}
   }
@@ -76,6 +77,23 @@ export const articleQuery = `
 
 export const categoryQuery = (category: string) => `
   *[_type == "article" && category == "${category}" && status == "published"] | order(publishedAt desc) {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`
+
+// Full-text-ish search across headline, excerpt, and body.
+// Pass the term already wildcarded, e.g. client.fetch(searchQuery, { term: `${q}*` })
+export const searchQuery = groq`
+  *[
+    _type == "article" &&
+    status == "published" &&
+    (
+      headline match $term ||
+      excerpt match $term ||
+      pt::text(body) match $term
+    )
+  ] | order(publishedAt desc) [0...24] {
     headline, slug, excerpt, featuredImage, category, publishedAt,
     "author": author->{name, photo}
   }

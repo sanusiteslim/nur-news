@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Menu, X, Radio } from 'lucide-react'
 
 const categories = [
@@ -22,9 +23,20 @@ const moreCategories = [
 ]
 
 export default function Navbar() {
+  const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [query, setQuery] = useState('')
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = query.trim()
+    if (!trimmed) return
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
+    setSearchOpen(false)
+    setQuery('')
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -78,15 +90,28 @@ export default function Navbar() {
       </div>
 
       {searchOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20">
-          <div className="bg-white w-full max-w-2xl mx-4 rounded-lg p-4 shadow-2xl">
-            <div className="flex items-center gap-2">
-              <Search className="w-5 h-5 text-text-muted" />
-              <input type="text" placeholder="Search articles..." className="flex-1 text-lg outline-none" autoFocus />
-              <button onClick={() => setSearchOpen(false)}>
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20"
+          onClick={() => setSearchOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-2xl mx-4 rounded-lg p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+              <Search className="w-5 h-5 text-text-muted flex-shrink-0" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search articles..."
+                className="flex-1 text-lg outline-none"
+                autoFocus
+              />
+              <button type="button" onClick={() => setSearchOpen(false)} aria-label="Close search">
                 <X className="w-5 h-5 text-text-muted" />
               </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
