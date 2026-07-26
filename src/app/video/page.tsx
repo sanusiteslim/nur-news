@@ -1,6 +1,6 @@
 import { client, videoArticlesQuery, latestVideoQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
-import VideoCard from '@/components/video/VideoCard'
+import VideoCard from '@/app/video/VideoCard'
 import { getEmbedUrl, getYouTubeID } from '@/lib/video'
 import { urlForImage } from '@/lib/image'
 import Image from 'next/image'
