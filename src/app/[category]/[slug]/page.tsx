@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
-import ArticleWrapper from './ArticleWrapper'
+import ArticleWrapper from './loading'
 import type { Metadata } from 'next'
 
 export const revalidate = 10
@@ -57,7 +57,6 @@ export default async function ArticlePage({ params }: { params: { category: stri
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
 
   return (
-    <ArticleWrapper>
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">{article.category}</span>
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mt-2 mb-4 leading-tight">{article.headline}</h1>
@@ -167,6 +166,5 @@ export default async function ArticlePage({ params }: { params: { category: stri
 
         <RelatedArticles articles={relatedArticles} />
       </article>
-    </ArticleWrapper>
   )
 }
