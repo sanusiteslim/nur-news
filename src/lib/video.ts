@@ -12,7 +12,10 @@ export function getVimeoID(url: string): string | null {
 
 export function getVideoThumbnail(url: string): string | null {
   const yt = getYouTubeID(url)
-  if (yt) return `https://img.youtube.com/vi/${yt}/maxresdefault.jpg`
+  // hqdefault (480x360) is reliably available for every YouTube video.
+  // maxresdefault can 404 for videos without an HD source thumbnail, which
+  // would otherwise crash next/image at render time.
+  if (yt) return `https://img.youtube.com/vi/${yt}/hqdefault.jpg`
   // Vimeo requires API call for thumbs — fallback to placeholder or featuredImage
   return null
 }

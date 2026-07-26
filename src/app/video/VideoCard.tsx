@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { getVideoThumbnail, getYouTubeID } from '@/lib/video'
+import { getVideoThumbnail } from '@/lib/video'
 import { urlForImage } from '@/lib/image'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -26,20 +26,26 @@ export default function VideoCard({ article, size = 'md' }: VideoCardProps) {
   const thumb =
     (article.videoUrl && getVideoThumbnail(article.videoUrl)) ||
     (article.featuredImage && urlForImage(article.featuredImage).width(640).height(360).url()) ||
-    '/placeholder-video.jpg'
+    null
 
   const aspect = size === 'lg' ? 'aspect-video' : size === 'sm' ? 'aspect-video' : 'aspect-video'
 
   return (
     <Link href={`/${article.category}/${article.slug.current}`} className="group block">
       <div className={`relative ${aspect} rounded-lg overflow-hidden bg-black mb-3`}>
-        <Image
-          src={thumb}
-          alt={article.headline}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+        {thumb ? (
+          <Image
+            src={thumb}
+            alt={article.headline}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-brand-100 flex items-center justify-center">
+            <span className="text-brand-800 font-bold text-2xl">NURR</span>
+          </div>
+        )}
         {/* Play button overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">

@@ -1,7 +1,7 @@
 import { client, videoArticlesQuery, latestVideoQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import VideoCard from '@/app/video/VideoCard'
-import { getEmbedUrl, getYouTubeID } from '@/lib/video'
+import { getVideoThumbnail } from '@/lib/video'
 import { urlForImage } from '@/lib/image'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -46,17 +46,26 @@ export default async function VideoPage() {
             <div className="grid md:grid-cols-2 gap-6 items-center bg-surface-card rounded-xl overflow-hidden">
               {/* Thumbnail */}
               <div className="relative aspect-video md:aspect-[16/10] overflow-hidden">
-                <Image
-                  src={
-                    (latest.videoUrl && `https://img.youtube.com/vi/${getYouTubeID(latest.videoUrl)}/maxresdefault.jpg`) ||
+                {(() => {
+                  const thumb =
+                    (latest.videoUrl && getVideoThumbnail(latest.videoUrl)) ||
                     (latest.featuredImage && urlForImage(latest.featuredImage).width(1280).height(720).url()) ||
-                    '/placeholder-video.jpg'
-                  }
-                  alt={latest.headline}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority
-                />
+                    null
+
+                  return thumb ? (
+                    <Image
+                      src={thumb}
+                      alt={latest.headline}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      priority
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-brand-100 flex items-center justify-center">
+                      <span className="text-brand-800 font-bold text-4xl">NUR</span>
+                    </div>
+                  )
+                })()}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl transition-transform duration-300 group-hover:scale-110">
                     <svg className="w-8 h-8 md:w-10 md:h-10 text-brand-700 ml-1" fill="currentColor" viewBox="0 0 24 24">
