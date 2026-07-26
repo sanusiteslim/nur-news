@@ -18,6 +18,7 @@ const footerLinks = {
     { label: 'About NURR', href: '/about' },
     { label: 'Careers', href: '/careers' },
     { label: 'Contact', href: '/contact' },
+    { label: 'Send Us a Tip', href: '/tip' },
     { label: 'Advertise', href: '/advertise' },
   ],
   'Legal': [
