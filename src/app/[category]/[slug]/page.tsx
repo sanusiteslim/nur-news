@@ -2,6 +2,7 @@ import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { urlForImage } from '@/lib/image'
+import { getEmbedUrl } from '@/lib/video'
 import { getSiteUrl } from '@/lib/site'
 import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
@@ -79,12 +80,39 @@ export default async function ArticlePage({ params }: { params: { category: stri
           <ShareButtons url={shareUrl} title={article.headline} />
         </div>
 
-        {article.featuredImage && (
-          <figure className="mb-8">
-            <Image src={urlForImage(article.featuredImage).width(1200).height(675).url()} alt={article.featuredImage.alt || article.headline} width={1200} height={675} className="w-full rounded-lg" priority />
-            {article.featuredImage.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>}
-          </figure>
-        )}
+        {(() => {
+          const embedUrl = article.videoUrl ? getEmbedUrl(article.videoUrl) : null
+
+          if (embedUrl) {
+            return (
+              <figure className="mb-8">
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                  <iframe
+                    src={embedUrl}
+                    title={article.headline}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+                {article.featuredImage?.caption && (
+                  <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>
+                )}
+              </figure>
+            )
+          }
+
+          if (article.featuredImage) {
+            return (
+              <figure className="mb-8">
+                <Image src={urlForImage(article.featuredImage).width(1200).height(675).url()} alt={article.featuredImage.alt || article.headline} width={1200} height={675} className="w-full rounded-lg" priority />
+                {article.featuredImage.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>}
+              </figure>
+            )
+          }
+
+          return null
+        })()}
 
         <div className="article-body">
   <PortableText 
