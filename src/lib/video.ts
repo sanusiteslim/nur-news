@@ -1,7 +1,17 @@
 // Extract YouTube / Vimeo IDs and thumbnails
 
 export function getYouTubeID(url: string): string | null {
-  const match = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/)
+  if (!url) return null
+
+  // Handles (www./m. optional, http/https):
+  //   youtube.com/watch?v=ID          youtube.com/watch?list=X&v=ID
+  //   youtube.com/embed/ID            youtube.com/v/ID
+  //   youtube.com/shorts/ID           youtube.com/live/ID   (previously unmatched)
+  //   youtube-nocookie.com/embed/ID   (previously unmatched)
+  //   youtu.be/ID                     youtu.be/ID?si=...
+  const match = url
+    .trim()
+    .match(/(?:youtube(?:-nocookie)?\.com\/(?:[^/\s]+\/\S+\/|(?:embed|v|shorts|live)\/|\S*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   return match ? match[1] : null
 }
 
