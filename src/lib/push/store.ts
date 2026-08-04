@@ -1,6 +1,7 @@
 import 'server-only'
 import fs from 'fs/promises'
 import path from 'path'
+import { Redis } from '@upstash/redis'
 import type { PushSubscriptionRecord } from './types'
 
 export interface PushSubscriberStore {
@@ -10,8 +11,10 @@ export interface PushSubscriberStore {
 }
 
 // --- Dev adapter: stores subscriptions as JSON on disk. ---------------------
-// Fine for local dev / a single Vercel instance during testing, but Vercel's
-// filesystem is ephemeral per-deployment — do NOT rely on this in production.
+// Local dev only. Vercel's serverless functions have a READ-ONLY filesystem
+// outside of /tmp — this throws (EROFS) if it ever runs in production, which
+// is exactly why getSubscriberStore() below only picks this when the Upstash
+// env vars are absent.
 const DATA_DIR = path.join(process.cwd(), '.data')
 const DATA_FILE = path.join(DATA_DIR, 'push-subscribers.json')
 
@@ -47,42 +50,37 @@ class FileSubscriberStore implements PushSubscriberStore {
   }
 }
 
-// --- Production adapter: swap in Upstash Redis once you're ready. ----------
-// 1. npm install @upstash/redis
-// 2. Set UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN in your env
-// 3. Uncomment the class below — getSubscriberStore() will pick it up
-//    automatically once both env vars are present.
-//
-     import { Redis } from '@upstash/redis'
+// --- Production adapter: Upstash Redis. -------------------------------------
+// Picked automatically whenever UPSTASH_REDIS_REST_URL / _TOKEN are set
+// (Vercel env vars, or the Vercel↔Upstash marketplace integration).
+class UpstashSubscriberStore implements PushSubscriberStore {
+  private redis = Redis.fromEnv()
+  private KEY = 'push:subscribers'
 
-     class UpstashSubscriberStore implements PushSubscriberStore {
-       private redis = Redis.fromEnv()
-       private KEY = 'push:subscribers'
+  async add(sub: PushSubscriptionRecord) {
+    await this.redis.hset(this.KEY, { [sub.endpoint]: JSON.stringify(sub) })
+  }
 
-       async add(sub: PushSubscriptionRecord) {
-       await this.redis.hset(this.KEY, { [sub.endpoint]: JSON.stringify(sub) })
-     }
+  async remove(endpoint: string) {
+    await this.redis.hdel(this.KEY, endpoint)
+  }
 
-       async remove(endpoint: string) {
-       await this.redis.hdel(this.KEY, endpoint)
-     }
-//
-     async all() {
-       const map = (await this.redis.hgetall<Record<string, string>>(this.KEY)) || {}
-       return Object.values(map).map((v) => JSON.parse(v))
-     }
-     }
+  async all() {
+    const map = (await this.redis.hgetall<Record<string, string>>(this.KEY)) || {}
+    return Object.values(map).map((v) => (typeof v === 'string' ? JSON.parse(v) : v))
+  }
+}
 
 let cachedStore: PushSubscriberStore | null = null
 
 export function getSubscriberStore(): PushSubscriberStore {
   if (cachedStore) return cachedStore
 
-     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-         cachedStore = new UpstashSubscriberStore()
-        return cachedStore
-     }
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    cachedStore = new UpstashSubscriberStore()
+  } else {
+    cachedStore = new FileSubscriberStore()
+  }
 
-  cachedStore = new FileSubscriberStore()
   return cachedStore
 }
