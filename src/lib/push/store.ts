@@ -53,35 +53,35 @@ class FileSubscriberStore implements PushSubscriberStore {
 // 3. Uncomment the class below — getSubscriberStore() will pick it up
 //    automatically once both env vars are present.
 //
-// import { Redis } from '@upstash/redis'
+     import { Redis } from '@upstash/redis'
+
+     class UpstashSubscriberStore implements PushSubscriberStore {
+       private redis = Redis.fromEnv()
+       private KEY = 'push:subscribers'
+
+       async add(sub: PushSubscriptionRecord) {
+       await this.redis.hset(this.KEY, { [sub.endpoint]: JSON.stringify(sub) })
+     }
+
+       async remove(endpoint: string) {
+       await this.redis.hdel(this.KEY, endpoint)
+     }
 //
-// class UpstashSubscriberStore implements PushSubscriberStore {
-//   private redis = Redis.fromEnv()
-//   private KEY = 'push:subscribers'
-//
-//   async add(sub: PushSubscriptionRecord) {
-//     await this.redis.hset(this.KEY, { [sub.endpoint]: JSON.stringify(sub) })
-//   }
-//
-//   async remove(endpoint: string) {
-//     await this.redis.hdel(this.KEY, endpoint)
-//   }
-//
-//   async all() {
-//     const map = (await this.redis.hgetall<Record<string, string>>(this.KEY)) || {}
-//     return Object.values(map).map((v) => JSON.parse(v))
-//   }
-// }
+     async all() {
+       const map = (await this.redis.hgetall<Record<string, string>>(this.KEY)) || {}
+       return Object.values(map).map((v) => JSON.parse(v))
+     }
+     }
 
 let cachedStore: PushSubscriberStore | null = null
 
 export function getSubscriberStore(): PushSubscriberStore {
   if (cachedStore) return cachedStore
 
-  // if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  //   cachedStore = new UpstashSubscriberStore()
-  //   return cachedStore
-  // }
+     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+         cachedStore = new UpstashSubscriberStore()
+        return cachedStore
+     }
 
   cachedStore = new FileSubscriberStore()
   return cachedStore
