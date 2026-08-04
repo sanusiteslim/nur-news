@@ -17,8 +17,11 @@ export const homepageQuery = `
       headline, slug, excerpt, featuredImage, category, publishedAt,
       "author": author->{name, photo}
     },
-    sidebarStories[]->{
-      headline, slug, excerpt, featuredImage, category, publishedAt
+    sidebarStories[]{
+      label,
+      story->{
+        headline, slug, excerpt, featuredImage, category, publishedAt
+      }
     },
     showLiveUpdates,
     liveUpdatesSource->{

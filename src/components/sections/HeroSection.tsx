@@ -30,8 +30,8 @@ export default function HeroSection({ heroStory, sidebarStories }: any) {
 
       {sidebarStories && sidebarStories.length > 0 && (
         <div className="lg:col-span-4 space-y-4">
-          {sidebarStories.map((story: any, i: number) => (
-            <SidebarCard key={story?.slug?.current || i} story={story} index={i} />
+          {sidebarStories.map((item: any, i: number) => (
+            <SidebarCard key={item?.story?.slug?.current || i} story={item?.story} label={item?.label} />
           ))}
         </div>
       )}
@@ -39,14 +39,12 @@ export default function HeroSection({ heroStory, sidebarStories }: any) {
   )
 }
 
-function SidebarCard({ story, index }: { story: any; index: number }) {
+function SidebarCard({ story, label }: { story: any; label?: string }) {
   if (!story) return null
-  const sections = ['World Cup 2026', 'Must Read', 'Trending', 'Latest', 'Top Story']
-  const sectionTitle = sections[index] || 'Latest'
 
   return (
     <div className="border-l-4 border-brand-700 pl-4 py-1">
-      <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 mb-1">{sectionTitle}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 mb-1">{label || 'Latest'}</p>
       <Link href={`/${story.category}/${story.slug.current}`} className="group">
         <div className="flex gap-3">
           {story.featuredImage && (

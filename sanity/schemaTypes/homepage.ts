@@ -21,7 +21,36 @@ export default {
       name: 'sidebarStories',
       title: 'Sidebar Stories',
       type: 'array',
-      of: [{ type: 'reference', to: [{ type: 'article' }] }],
+      of: [
+        {
+          type: 'object',
+          name: 'sidebarStoryItem',
+          title: 'Sidebar Story',
+          fields: [
+            {
+              name: 'label',
+              title: 'Section Label',
+              description: 'Shown above the headline, e.g. "World Cup 2026", "Must Read", "Trending"',
+              type: 'string',
+              initialValue: 'Latest',
+              validation: (Rule: any) => Rule.required(),
+            },
+            {
+              name: 'story',
+              title: 'Article',
+              type: 'reference',
+              to: [{ type: 'article' }],
+              validation: (Rule: any) => Rule.required(),
+            },
+          ],
+          preview: {
+            select: { label: 'label', headline: 'story.headline' },
+            prepare({ label, headline }: any) {
+              return { title: headline || 'No article selected', subtitle: label }
+            },
+          },
+        },
+      ],
       validation: (Rule: any) => Rule.max(5),
     },
     {

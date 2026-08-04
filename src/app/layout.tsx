@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import NotificationPrompt from '@/components/NotificationPrompt'
 import { getSiteUrl } from '@/lib/site'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
         <main className="min-h-screen">{children}</main>
         <Footer />
+        <NotificationPrompt />
         {/* 2. Render the analytics script only if the ID exists */}
         {gaId && <GoogleAnalytics gaId={gaId} />}
         

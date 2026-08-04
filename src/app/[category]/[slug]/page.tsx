@@ -9,6 +9,7 @@ import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import ArticleWrapper from './loading'
+import { getReadingTime } from '@/lib/readingTime'
 import type { Metadata } from 'next'
 
 export const revalidate = 10
@@ -56,6 +57,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
   })
 
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
+  const readingTime = getReadingTime(article.body)
 
   return (
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -73,6 +75,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
               <p className="text-sm text-text-muted">
                 {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
                 {article.author?.role && ` · ${article.author.role}`}
+                {` · ${readingTime} min read`}
               </p>
             </div>
           </div>
