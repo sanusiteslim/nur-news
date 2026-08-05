@@ -14,16 +14,17 @@ export async function POST(request: NextRequest) {
   }
 
   const article = await request.json().catch(() => null)
+  const slug = typeof article?.slug === 'string' ? article.slug : article?.slug?.current
 
-  if (!article?.isBreaking || !article?.headline || !article?.slug) {
-    return NextResponse.json({ skipped: true, reason: 'Not a breaking-news article' })
+  if (!article?.isBreaking || !article?.headline || !slug) {
+    return NextResponse.json({ skipped: true, reason: 'Not a breaking-news article', received: article })
   }
 
   try {
     const result = await sendNotificationToAll({
       title: article.headline,
       body: article.excerpt || 'Breaking news on NUR Report',
-      url: `${getSiteUrl()}/${article.category || 'news'}/${article.slug}`,
+      url: `${getSiteUrl()}/${article.category || 'news'}/${slug}`,
       image: article.image,
     })
 

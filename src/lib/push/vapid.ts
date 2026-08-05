@@ -10,7 +10,7 @@ function ensureConfigured() {
 
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
   const privateKey = process.env.VAPID_PRIVATE_KEY
-  const subject = process.env.VAPID_SUBJECT || 'mailto:news@teslimsanusi123@gmail.com'
+  const subject = process.env.VAPID_SUBJECT || 'mailto:news@nurreport.name.ng'
 
   if (!publicKey || !privateKey) {
     throw new Error(
@@ -47,6 +47,7 @@ export async function sendNotificationToAll(payload: NotificationPayload) {
 
   let sent = 0
   let pruned = 0
+  const failures: { endpoint: string; statusCode?: number; message?: string }[] = []
 
   await Promise.all(
     results.map(async (result, i) => {
@@ -55,12 +56,25 @@ export async function sendNotificationToAll(payload: NotificationPayload) {
         return
       }
       const statusCode = (result.reason as any)?.statusCode
+      const endpoint = subscribers[i].endpoint
+
       if (statusCode === 404 || statusCode === 410) {
-        await store.remove(subscribers[i].endpoint)
+        await store.remove(endpoint)
         pruned++
+        return
       }
+
+      failures.push({
+        endpoint: endpoint.slice(0, 60) + '…',
+        statusCode,
+        message: (result.reason as any)?.body || (result.reason as any)?.message,
+      })
     })
   )
 
-  return { total: subscribers.length, sent, pruned }
+  if (failures.length > 0) {
+    console.error('[push] send failures:', JSON.stringify(failures, null, 2))
+  }
+
+  return { total: subscribers.length, sent, pruned, failed: failures.length, failures }
 }
