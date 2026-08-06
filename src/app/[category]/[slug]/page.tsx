@@ -11,6 +11,8 @@ import RelatedArticles from '@/components/article/RelatedArticles'
 import ArticleWrapper from './loading'
 import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
+import { withAdBreaks } from '@/lib/adBreaks'
+import AdSlot from '@/components/ads/AdSlot'
 import type { Metadata } from 'next'
 
 export const revalidate = 10
@@ -130,7 +132,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
 
         <div className="article-body">
   <PortableText 
-    value={article.body} 
+    value={withAdBreaks(article.body, 2)} 
     components={{
       block: {
         normal: ({ children }: any) => <p className="mb-6 text-lg leading-relaxed text-text-primary">{children}</p>,
@@ -168,6 +170,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
             {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
           </figure>
         ),
+        adBreak: () => <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_IN_ARTICLE_SLOT} />,
       },
     }}
   />

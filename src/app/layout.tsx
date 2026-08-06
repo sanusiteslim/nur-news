@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import NotificationPrompt from '@/components/NotificationPrompt'
 import { getSiteUrl } from '@/lib/site'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import Script from 'next/script'
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -46,6 +47,7 @@ formatDetection: {
 }
 export default function RootLayout({ children }: { children: React.ReactNode }) {
    const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+   const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
 
   return (
     <html lang="en" className={inter.variable}>
@@ -57,6 +59,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NotificationPrompt />
         {/* 2. Render the analytics script only if the ID exists */}
         {gaId && <GoogleAnalytics gaId={gaId} />}
+        {/* Loads once site-wide; individual AdSlot components push ad requests into it */}
+        {adsenseClientId && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        )}
         
       </body>
     </html>
