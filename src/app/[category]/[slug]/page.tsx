@@ -10,6 +10,7 @@ import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import ArticleWrapper from './loading'
 import { getReadingTime } from '@/lib/readingTime'
+import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import type { Metadata } from 'next'
 
 export const revalidate = 10
@@ -61,7 +62,17 @@ export default async function ArticlePage({ params }: { params: { category: stri
 
   return (
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">{article.category}</span>
+        <div className="mb-2">
+          <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">
+            {categoryLabels[article.category] || article.category}
+          </span>
+          {article.tags && article.tags.length > 0 && (
+            <p className="text-sm text-text-muted mt-1">
+              {categoryLabels[article.category] || article.category}
+              {article.tags.map((tag: string) => ` | ${formatTag(tag)}`).join('')}
+            </p>
+          )}
+        </div>
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mt-2 mb-4 leading-tight">{article.headline}</h1>
         <p className="text-lg text-text-secondary mb-6">{article.excerpt}</p>
 
@@ -161,16 +172,6 @@ export default async function ArticlePage({ params }: { params: { category: stri
     }}
   />
 </div>
-
-        {article.tags && article.tags.length > 0 && (
-          <div className="mt-10 pt-6 border-t border-gray-200">
-            <div className="flex flex-wrap gap-2">
-              {article.tags.map((tag: string) => (
-                <span key={tag} className="px-3 py-1 bg-brand-50 text-brand-800 text-sm rounded-full capitalize">{tag}</span>
-              ))}
-            </div>
-          </div>
-        )}
 
         {article.hasLiveUpdates && article.liveUpdates && article.liveUpdates.length > 0 && (
           <div className="mt-12 bg-surface-offwhite rounded-lg p-6">

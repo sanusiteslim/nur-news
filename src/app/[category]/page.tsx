@@ -1,24 +1,12 @@
 import { client, categoryQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import ArticleCard from '@/components/ui/ArticleCard'
+import { categoryLabels, validCategories } from '@/lib/taxonomy'
 
 export const revalidate = 10
 
-const categoryLabels: Record<string, string> = {
-  nigeria: 'Nigeria',
-  africa: 'Africa',
-  world: 'World',
-  sports: 'Sports',
-  opinion: 'Opinion',
-  business: 'Business',
-  tech: 'Tech',
-  culture: 'Culture',
-}
-
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   const articles = await client.fetch(categoryQuery(params.category))
-
-  const validCategories = ['nigeria', 'africa', 'world', 'sports', 'video', 'business', 'tech', 'culture', 'environment', 'opinion'] 
 
   // THE FIX: If the typed path is random text, throw a 404 immediately
   if (!validCategories.includes(params.category.toLowerCase())) {
