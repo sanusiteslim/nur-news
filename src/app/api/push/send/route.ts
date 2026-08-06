@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
     const article = JSON.parse(rawBody)
     const slug = typeof article?.slug === 'string' ? article.slug : article?.slug?.current
 
-    // 4. Validate requirements for breaking news notifications
-    if (!article?.isBreaking || !article?.headline || !slug) {
+    // 4. Validate required fields are present (no longer gated to breaking news only)
+    if (!article?.headline || !slug) {
       return NextResponse.json({ 
         skipped: true, 
-        reason: 'Not a breaking-news article or missing required fields', 
+        reason: 'Missing required fields (headline or slug)', 
         received: article 
       })
     }
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     // 6. Execute your existing browser notification broadcast logic
     const result = await sendNotificationToAll({
       title: article.headline,
-      body: article.excerpt || 'Breaking news on NUR Report',
+      body: article.excerpt || (article.isBreaking ? 'Breaking news on NUR Report' : 'New on NUR Report'),
       url: `${getSiteUrl()}/${article.category || 'news'}/${slug}`,
       image: article.image,
     })
