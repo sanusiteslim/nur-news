@@ -63,11 +63,11 @@ export default async function ArticlePage({ params }: { params: { category: stri
   return (
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-2">
-          <span className="text-brand-700 text-sm font-semibold uppercase tracking-wider">
+          <span className="text-brand-700 text-base md:text-lg font-bold uppercase tracking-wide">
             {categoryLabels[article.category] || article.category}
           </span>
           {article.tags && article.tags.length > 0 && (
-            <p className="text-sm text-text-muted mt-1">
+            <p className="text-sm md:text-base text-text-muted mt-1">
               {categoryLabels[article.category] || article.category}
               {article.tags.map((tag: string) => ` | ${formatTag(tag)}`).join('')}
             </p>
