@@ -2,7 +2,7 @@ import { client, searchQuery } from '@/lib/sanity'
 import ArticleCard from '@/components/ui/ArticleCard'
 import type { Metadata } from 'next'
 
-export const revalidate = 10
+export const revalidate = 5
 
 type SearchParams = { q?: string | string[] }
 

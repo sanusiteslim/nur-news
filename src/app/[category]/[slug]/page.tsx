@@ -15,7 +15,7 @@ import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
 import type { Metadata } from 'next'
 
-export const revalidate = 10
+export const revalidate = 5
 
 export async function generateMetadata({ params }: { params: { category: string; slug: string } }): Promise<Metadata> {
   const article = await client.fetch(articleQuery, { slug: params.slug })

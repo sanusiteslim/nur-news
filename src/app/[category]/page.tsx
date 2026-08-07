@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import ArticleCard from '@/components/ui/ArticleCard'
 import { categoryLabels, validCategories } from '@/lib/taxonomy'
 
-export const revalidate = 10
+export const revalidate = 5
 
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   const articles = await client.fetch(categoryQuery(params.category))
