@@ -29,10 +29,13 @@ export const homepageQuery = `
     },
     highlightSection{
       title,
-      featured->{
-        headline, slug, excerpt, featuredImage, category, publishedAt,
-        "author": author->{name, photo}
-      },
+      "featured": select(
+        ^.heroStory->slug.current == featured->slug.current => null,
+        featured->{
+          headline, slug, excerpt, featuredImage, category, publishedAt,
+          "author": author->{name, photo}
+        }
+      ),
       list[]->{
         headline, slug, excerpt, featuredImage, category, publishedAt
       }
@@ -42,7 +45,8 @@ export const homepageQuery = `
       "articles": *[
         _type == "article" &&
         status == "published" &&
-        (!defined(^.category) || category == ^.category)
+        (!defined(^.category) || category == ^.category) &&
+        slug.current != ^.^.heroStory->slug.current
       ] | order(publishedAt desc) [0...9] {
         headline, slug, excerpt, featuredImage, category, publishedAt,
         "author": author->{name, photo}
