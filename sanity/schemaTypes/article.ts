@@ -66,6 +66,8 @@ export default {
           { title: 'US-Israel-Iran War', value: 'us-israel-iran-war' },
           { title: 'Health', value: 'health' },
           { title: 'Education', value: 'education' },
+          { title: 'Entertainment', value: 'entertainment' },
+          { title: 'TECH', value: 'technology' },
         ],
       },
     },

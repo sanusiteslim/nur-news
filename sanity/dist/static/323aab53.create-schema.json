@@ -1,0 +1,1236 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 120
+              }
+            ]
+          }
+        ],
+        "name": "headline",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "headline",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "rows": 3,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 200
+              }
+            ]
+          }
+        ],
+        "name": "excerpt",
+        "type": "text"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Nigeria",
+              "value": "nigeria"
+            },
+            {
+              "title": "Africa",
+              "value": "africa"
+            },
+            {
+              "title": "World",
+              "value": "world"
+            },
+            {
+              "title": "Sports",
+              "value": "sports"
+            },
+            {
+              "title": "Opinion",
+              "value": "opinion"
+            },
+            {
+              "title": "Business",
+              "value": "business"
+            },
+            {
+              "title": "Video",
+              "value": "video"
+            },
+            {
+              "title": "Tech",
+              "value": "tech"
+            },
+            {
+              "title": "Culture",
+              "value": "culture"
+            },
+            {
+              "title": "Environment",
+              "value": "environment"
+            }
+          ],
+          "layout": "dropdown"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "nigeria",
+                  "africa",
+                  "world",
+                  "sports",
+                  "opinion",
+                  "business",
+                  "video",
+                  "tech",
+                  "culture",
+                  "environment"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Breaking",
+              "value": "breaking"
+            },
+            {
+              "title": "Politics",
+              "value": "politics"
+            },
+            {
+              "title": "Economy",
+              "value": "economy"
+            },
+            {
+              "title": "Football",
+              "value": "football"
+            },
+            {
+              "title": "AFCON",
+              "value": "afcon"
+            },
+            {
+              "title": "Election",
+              "value": "election"
+            },
+            {
+              "title": "Climate",
+              "value": "climate"
+            },
+            {
+              "title": "Security",
+              "value": "security"
+            },
+            {
+              "title": "Osun 2026",
+              "value": "osun-2026"
+            },
+            {
+              "title": "NELFUND",
+              "value": "nelfund"
+            },
+            {
+              "title": "Transfer Market",
+              "value": "transfer-market"
+            },
+            {
+              "title": "World Cup 2026",
+              "value": "world-cup-2026"
+            },
+            {
+              "title": "US-Israel-Iran War",
+              "value": "us-israel-iran-war"
+            },
+            {
+              "title": "Health",
+              "value": "health"
+            },
+            {
+              "title": "Education",
+              "value": "education"
+            },
+            {
+              "title": "Entertainment",
+              "value": "entertainment"
+            },
+            {
+              "title": "TECH",
+              "value": "technology"
+            }
+          ]
+        },
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "tags",
+        "type": "array"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "presence",
+                    "constraint": "required"
+                  }
+                ]
+              }
+            ],
+            "name": "alt",
+            "type": "string",
+            "title": "Alt Text"
+          },
+          {
+            "name": "caption",
+            "type": "string"
+          }
+        ],
+        "name": "featuredImage",
+        "type": "image"
+      },
+      {
+        "of": [
+          {
+            "lists": [
+              {
+                "value": "bullet",
+                "title": "Bullet"
+              },
+              {
+                "value": "number",
+                "title": "Numbered"
+              }
+            ],
+            "marks": {
+              "annotations": [
+                {
+                  "fields": [
+                    {
+                      "validation": [
+                        {
+                          "level": "error",
+                          "rules": [
+                            {
+                              "flag": "uri",
+                              "constraint": {
+                                "options": {
+                                  "scheme": [
+                                    "/^http$/",
+                                    "/^https$/"
+                                  ],
+                                  "allowRelative": false,
+                                  "relativeOnly": false,
+                                  "allowCredentials": false
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "name": "href",
+                      "type": "url",
+                      "title": "URL"
+                    }
+                  ],
+                  "name": "link",
+                  "type": "object",
+                  "title": "URL"
+                }
+              ],
+              "decorators": [
+                {
+                  "value": "strong",
+                  "title": "Strong"
+                },
+                {
+                  "value": "em",
+                  "title": "Emphasis"
+                }
+              ]
+            },
+            "of": [],
+            "styles": [
+              {
+                "value": "normal",
+                "title": "Normal"
+              },
+              {
+                "value": "h2",
+                "title": "Heading 2"
+              },
+              {
+                "value": "h3",
+                "title": "Heading 3"
+              },
+              {
+                "value": "blockquote",
+                "title": "Quote"
+              }
+            ],
+            "type": "block"
+          },
+          {
+            "options": {
+              "hotspot": true
+            },
+            "fields": [
+              {
+                "name": "alt",
+                "type": "string",
+                "title": "Alt Text"
+              },
+              {
+                "name": "caption",
+                "type": "string"
+              }
+            ],
+            "type": "image"
+          }
+        ],
+        "name": "body",
+        "type": "array"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "description": "Paste a YouTube or Vimeo link to embed a video",
+        "name": "videoUrl",
+        "type": "url",
+        "title": "Video URL (YouTube/Vimeo)"
+      },
+      {
+        "description": "e.g. 3:45 or 12:30",
+        "hidden": "conditional",
+        "name": "videoDuration",
+        "type": "string"
+      },
+      {
+        "initialValue": false,
+        "name": "isBreaking",
+        "type": "boolean",
+        "title": "Breaking News?"
+      },
+      {
+        "initialValue": false,
+        "name": "hasLiveUpdates",
+        "type": "boolean",
+        "title": "Live Updates?"
+      },
+      {
+        "of": [
+          {
+            "fields": [
+              {
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "timestamp",
+                "type": "datetime"
+              },
+              {
+                "rows": 2,
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "name": "updateText",
+                "type": "text",
+                "title": "Update"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "hidden": "conditional",
+        "name": "liveUpdates",
+        "type": "array"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "to": [
+          {
+            "type": "author"
+          }
+        ],
+        "name": "author",
+        "type": "reference"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "publishedAt",
+        "type": "datetime"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Draft",
+              "value": "draft"
+            },
+            {
+              "title": "Published",
+              "value": "published"
+            },
+            {
+              "title": "Scheduled",
+              "value": "scheduled"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "draft",
+        "name": "status",
+        "type": "string"
+      }
+    ],
+    "name": "article",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "options": {
+          "source": "name"
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Editor-in-Chief",
+              "value": "editor-in-chief"
+            },
+            {
+              "title": "Managing Editor",
+              "value": "managing-editor"
+            },
+            {
+              "title": "Staff Writer",
+              "value": "staff-writer"
+            },
+            {
+              "title": "Contributor",
+              "value": "contributor"
+            },
+            {
+              "title": "Columnist",
+              "value": "columnist"
+            },
+            {
+              "title": "State-based Journalist",
+              "value": "state-journalist"
+            }
+          ]
+        },
+        "initialValue": "staff-writer",
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "editor-in-chief",
+                  "managing-editor",
+                  "staff-writer",
+                  "contributor",
+                  "columnist",
+                  "state-journalist"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "role",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Abia",
+              "value": "Abia"
+            },
+            {
+              "title": "Adamawa",
+              "value": "Adamawa"
+            },
+            {
+              "title": "Akwa Ibom",
+              "value": "Akwa Ibom"
+            },
+            {
+              "title": "Anambra",
+              "value": "Anambra"
+            },
+            {
+              "title": "Bauchi",
+              "value": "Bauchi"
+            },
+            {
+              "title": "Bayelsa",
+              "value": "Bayelsa"
+            },
+            {
+              "title": "Benue",
+              "value": "Benue"
+            },
+            {
+              "title": "Borno",
+              "value": "Borno"
+            },
+            {
+              "title": "Cross River",
+              "value": "Cross River"
+            },
+            {
+              "title": "Delta",
+              "value": "Delta"
+            },
+            {
+              "title": "Ebonyi",
+              "value": "Ebonyi"
+            },
+            {
+              "title": "Edo",
+              "value": "Edo"
+            },
+            {
+              "title": "Ekiti",
+              "value": "Ekiti"
+            },
+            {
+              "title": "Enugu",
+              "value": "Enugu"
+            },
+            {
+              "title": "Gombe",
+              "value": "Gombe"
+            },
+            {
+              "title": "Imo",
+              "value": "Imo"
+            },
+            {
+              "title": "Jigawa",
+              "value": "Jigawa"
+            },
+            {
+              "title": "Kaduna",
+              "value": "Kaduna"
+            },
+            {
+              "title": "Kano",
+              "value": "Kano"
+            },
+            {
+              "title": "Katsina",
+              "value": "Katsina"
+            },
+            {
+              "title": "Kebbi",
+              "value": "Kebbi"
+            },
+            {
+              "title": "Kogi",
+              "value": "Kogi"
+            },
+            {
+              "title": "Kwara",
+              "value": "Kwara"
+            },
+            {
+              "title": "Lagos",
+              "value": "Lagos"
+            },
+            {
+              "title": "Nasarawa",
+              "value": "Nasarawa"
+            },
+            {
+              "title": "Niger",
+              "value": "Niger"
+            },
+            {
+              "title": "Ogun",
+              "value": "Ogun"
+            },
+            {
+              "title": "Ondo",
+              "value": "Ondo"
+            },
+            {
+              "title": "Osun",
+              "value": "Osun"
+            },
+            {
+              "title": "Oyo",
+              "value": "Oyo"
+            },
+            {
+              "title": "Plateau",
+              "value": "Plateau"
+            },
+            {
+              "title": "Rivers",
+              "value": "Rivers"
+            },
+            {
+              "title": "Sokoto",
+              "value": "Sokoto"
+            },
+            {
+              "title": "Taraba",
+              "value": "Taraba"
+            },
+            {
+              "title": "Yobe",
+              "value": "Yobe"
+            },
+            {
+              "title": "Zamfara",
+              "value": "Zamfara"
+            }
+          ]
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "Abia",
+                  "Adamawa",
+                  "Akwa Ibom",
+                  "Anambra",
+                  "Bauchi",
+                  "Bayelsa",
+                  "Benue",
+                  "Borno",
+                  "Cross River",
+                  "Delta",
+                  "Ebonyi",
+                  "Edo",
+                  "Ekiti",
+                  "Enugu",
+                  "Gombe",
+                  "Imo",
+                  "Jigawa",
+                  "Kaduna",
+                  "Kano",
+                  "Katsina",
+                  "Kebbi",
+                  "Kogi",
+                  "Kwara",
+                  "Lagos",
+                  "Nasarawa",
+                  "Niger",
+                  "Ogun",
+                  "Ondo",
+                  "Osun",
+                  "Oyo",
+                  "Plateau",
+                  "Rivers",
+                  "Sokoto",
+                  "Taraba",
+                  "Yobe",
+                  "Zamfara"
+                ]
+              },
+              {
+                "flag": "custom"
+              }
+            ]
+          }
+        ],
+        "hidden": "conditional",
+        "name": "state",
+        "type": "string",
+        "title": "State (only for state-based journalists)"
+      },
+      {
+        "rows": 4,
+        "name": "bio",
+        "type": "text"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "photo",
+        "type": "image"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "uri",
+                "constraint": {
+                  "options": {
+                    "scheme": [
+                      "/^http$/",
+                      "/^https$/"
+                    ],
+                    "allowRelative": false,
+                    "relativeOnly": false,
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "name": "twitter",
+        "type": "url",
+        "title": "Twitter/X"
+      },
+      {
+        "name": "email",
+        "type": "string"
+      }
+    ],
+    "name": "author",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "Homepage",
+        "readOnly": true,
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "to": [
+          {
+            "type": "article"
+          }
+        ],
+        "name": "heroStory",
+        "type": "reference"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "max",
+                "constraint": 5
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "fields": [
+              {
+                "initialValue": "Latest",
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "description": "Shown above the headline, e.g. \"World Cup 2026\", \"Must Read\", \"Trending\"",
+                "name": "label",
+                "type": "string",
+                "title": "Section Label"
+              },
+              {
+                "validation": [
+                  {
+                    "level": "error",
+                    "rules": [
+                      {
+                        "flag": "presence",
+                        "constraint": "required"
+                      }
+                    ]
+                  }
+                ],
+                "to": [
+                  {
+                    "type": "article"
+                  }
+                ],
+                "name": "story",
+                "type": "reference",
+                "title": "Article"
+              }
+            ],
+            "type": "object",
+            "name": "sidebarStoryItem",
+            "title": "Sidebar Story"
+          }
+        ],
+        "name": "sidebarStories",
+        "type": "array"
+      },
+      {
+        "initialValue": false,
+        "name": "showLiveUpdates",
+        "type": "boolean"
+      },
+      {
+        "to": [
+          {
+            "type": "article"
+          }
+        ],
+        "hidden": "conditional",
+        "name": "liveUpdatesSource",
+        "type": "reference"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "Latest",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "to": [
+              {
+                "type": "article"
+              }
+            ],
+            "name": "featured",
+            "type": "reference",
+            "title": "Featured Article"
+          },
+          {
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "max",
+                    "constraint": 4
+                  }
+                ]
+              }
+            ],
+            "of": [
+              {
+                "to": [
+                  {
+                    "type": "article"
+                  }
+                ],
+                "type": "reference",
+                "title": "Reference to article"
+              }
+            ],
+            "name": "list",
+            "type": "array",
+            "title": "List Articles"
+          }
+        ],
+        "name": "highlightSection",
+        "type": "object",
+        "title": "Highlight Section (2-Column)"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "More Stories",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "options": {
+              "list": [
+                {
+                  "title": "Sports",
+                  "value": "sports"
+                },
+                {
+                  "title": "Nigeria",
+                  "value": "nigeria"
+                },
+                {
+                  "title": "Africa",
+                  "value": "africa"
+                },
+                {
+                  "title": "World",
+                  "value": "world"
+                }
+              ]
+            },
+            "name": "category",
+            "type": "string",
+            "title": "Filter by Category"
+          },
+          {
+            "initialValue": 6,
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "min",
+                    "constraint": 3
+                  },
+                  {
+                    "flag": "max",
+                    "constraint": 9
+                  }
+                ]
+              }
+            ],
+            "name": "count",
+            "type": "number",
+            "title": "Number of Articles"
+          }
+        ],
+        "name": "gridSection",
+        "type": "object",
+        "title": "Grid Section (3-Column Cards)"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": "Opinion",
+            "name": "title",
+            "type": "string",
+            "title": "Section Title"
+          },
+          {
+            "initialValue": 4,
+            "validation": [
+              {
+                "level": "error",
+                "rules": [
+                  {
+                    "flag": "min",
+                    "constraint": 2
+                  },
+                  {
+                    "flag": "max",
+                    "constraint": 6
+                  }
+                ]
+              }
+            ],
+            "name": "count",
+            "type": "number",
+            "title": "Number of Articles"
+          }
+        ],
+        "name": "opinionSection",
+        "type": "object"
+      }
+    ],
+    "name": "homepage",
+    "type": "document",
+    "title": "Homepage Layout"
+  },
+  {
+    "fields": [
+      {
+        "rows": 6,
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "max",
+                "constraint": 2000
+              }
+            ]
+          }
+        ],
+        "name": "tipText",
+        "type": "text",
+        "title": "Tip"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Nigeria",
+              "value": "nigeria"
+            },
+            {
+              "title": "Africa",
+              "value": "africa"
+            },
+            {
+              "title": "World",
+              "value": "world"
+            },
+            {
+              "title": "Sports",
+              "value": "sports"
+            },
+            {
+              "title": "Opinion",
+              "value": "opinion"
+            },
+            {
+              "title": "Business",
+              "value": "business"
+            },
+            {
+              "title": "Not sure",
+              "value": "unsure"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "unsure",
+        "name": "category",
+        "type": "string",
+        "title": "Suggested Category"
+      },
+      {
+        "description": "Where this happened (state/LGA/area), if relevant",
+        "name": "location",
+        "type": "string"
+      },
+      {
+        "description": "Optional — reader can submit anonymously",
+        "name": "submitterName",
+        "type": "string",
+        "title": "Name"
+      },
+      {
+        "description": "Optional — needed if you want to follow up for verification",
+        "name": "submitterContact",
+        "type": "string",
+        "title": "Contact (phone or email)"
+      },
+      {
+        "description": "If the tipper mentioned having photos/video, note it here for follow-up — the form itself does not accept file uploads",
+        "readOnly": true,
+        "name": "attachmentNote",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "New",
+              "value": "new"
+            },
+            {
+              "title": "Reviewing",
+              "value": "reviewing"
+            },
+            {
+              "title": "Actioned — became a story",
+              "value": "actioned"
+            },
+            {
+              "title": "Dismissed",
+              "value": "dismissed"
+            }
+          ],
+          "layout": "radio"
+        },
+        "initialValue": "new",
+        "name": "status",
+        "type": "string"
+      },
+      {
+        "rows": 3,
+        "description": "Internal only — verification notes, follow-up status, etc.",
+        "name": "editorNotes",
+        "type": "text"
+      },
+      {
+        "readOnly": true,
+        "name": "submittedAt",
+        "type": "datetime"
+      },
+      {
+        "initialValue": "web",
+        "description": "Where the tip came from (web form, WhatsApp, etc.)",
+        "readOnly": true,
+        "name": "source",
+        "type": "string"
+      }
+    ],
+    "name": "tipSubmission",
+    "type": "document",
+    "title": "Reader Tip"
+  }
+]
