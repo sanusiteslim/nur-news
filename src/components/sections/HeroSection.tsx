@@ -10,7 +10,7 @@ export default function HeroSection({ heroStory, sidebarStories }: any) {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className="lg:col-span-8">
         <Link href={`/${heroStory.category}/${heroStory.slug.current}`} className="group block">
-          <div className="relative aspect-[16/9] rounded-lg overflow-hidden">
+          <div className="relative -mx-4 sm:mx-0 aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] rounded-none sm:rounded-lg overflow-hidden">
             {heroStory.featuredImage ? (
               <Image src={urlForImage(heroStory.featuredImage).width(1200).height(675).url()} alt={heroStory.featuredImage.alt || heroStory.headline} fill className="object-cover transition-transform duration-500 group-hover:scale-105" priority />
             ) : (
@@ -18,11 +18,11 @@ export default function HeroSection({ heroStory, sidebarStories }: any) {
                 <span className="text-brand-800 font-bold text-4xl">NUR</span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-              <span className="text-brand-500 text-xs md:text-sm font-semibold uppercase tracking-wider">{heroStory.category}</span>
-              <h2 className="text-xl md:text-3xl font-bold text-white mt-2 leading-tight group-hover:underline decoration-2 underline-offset-4">{heroStory.headline}</h2>
-              <p className="text-white/80 mt-2 line-clamp-2 hidden md:block text-sm md:text-base">{heroStory.excerpt}</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
+              <span className="text-brand-500 text-sm md:text-sm font-semibold uppercase tracking-wider [text-shadow:0_1px_4px_rgb(0_0_0_/_60%)]">{heroStory.category}</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mt-2 leading-tight group-hover:underline decoration-2 underline-offset-4 [text-shadow:0_2px_8px_rgb(0_0_0_/_60%)]">{heroStory.headline}</h2>
+              <p className="text-white/85 mt-2 line-clamp-2 hidden md:block text-sm md:text-base [text-shadow:0_1px_4px_rgb(0_0_0_/_60%)]">{heroStory.excerpt}</p>
             </div>
           </div>
         </Link>
