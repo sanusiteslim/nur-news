@@ -33,6 +33,11 @@ formatDetection: {
 },
 
   description: siteDescription,
+  alternates: {
+    types: {
+      'application/rss+xml': [{ url: '/rss.xml', title: 'NUR Report RSS Feed' }],
+    },
+  },
   openGraph: {
     type: 'website',
     siteName: 'NUR Report',

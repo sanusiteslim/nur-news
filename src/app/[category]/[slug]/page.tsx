@@ -1,4 +1,4 @@
-import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
+import { client, articleQuery, relatedArticlesQuery, commentsQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { urlForImage } from '@/lib/image'
@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
+import Comments from '@/components/article/Comments'
 import ArticleWrapper from './loading'
 import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
@@ -29,7 +30,12 @@ export async function generateMetadata({ params }: { params: { category: string;
   return {
     title: `${article.headline} | NURR`,
     description: article.excerpt,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      types: {
+        'application/rss+xml': [{ url: '/rss.xml', title: 'NUR Report RSS Feed' }],
+      },
+    },
     openGraph: {
       type: 'article',
       title: article.headline,
@@ -59,11 +65,41 @@ export default async function ArticlePage({ params }: { params: { category: stri
     slug: params.slug,
   })
 
+  const comments = await client.fetch(commentsQuery, { articleId: article._id })
+
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
   const readingTime = getReadingTime(article.body)
 
+  const articleImage = article.featuredImage
+    ? urlForImage(article.featuredImage).width(1200).height(630).url()
+    : undefined
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.headline,
+    description: article.excerpt,
+    image: articleImage ? [articleImage] : undefined,
+    datePublished: article.publishedAt,
+    dateModified: article.publishedAt,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': shareUrl },
+    author: article.author?.name
+      ? { '@type': 'Person', name: article.author.name }
+      : undefined,
+    publisher: {
+      '@type': 'Organization',
+      name: 'NUR Report',
+      logo: { '@type': 'ImageObject', url: `${getSiteUrl()}/icon.svg` },
+    },
+  }
+
   return (
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <div className="mb-2">
           <span className="text-brand-700 text-base md:text-lg font-bold uppercase tracking-wide">
             {categoryLabels[article.category] || article.category}
@@ -77,6 +113,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
         </div>
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary mt-2 mb-4 leading-tight">{article.headline}</h1>
         <p className="text-lg text-text-secondary mb-6">{article.excerpt}</p>
+
 
         <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -200,6 +237,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
         )}
 
         <RelatedArticles articles={relatedArticles} />
+        <Comments articleId={article._id} comments={comments || []} />
       </article>
   )
 }

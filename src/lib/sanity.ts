@@ -74,7 +74,7 @@ export const breakingNewsQuery = `
 
 export const articleQuery = `
   *[_type == "article" && slug.current == $slug][0] {
-    headline, slug, excerpt, category, tags,
+    _id, headline, slug, excerpt, category, tags,
     featuredImage, body, isBreaking, hasLiveUpdates, liveUpdates,
     videoUrl, videoDuration,
     publishedAt,
@@ -91,6 +91,12 @@ export const categoryQuery = (category: string) => `
 
 // Full-text-ish search across headline, excerpt, and body.
 // Pass the term already wildcarded, e.g. client.fetch(searchQuery, { term: `${q}*` })
+export const commentsQuery = `
+  *[_type == "comment" && article._ref == $articleId] | order(submittedAt desc) {
+    _id, name, body, submittedAt
+  }
+`
+
 export const searchQuery = groq`
   *[
     _type == "article" &&
