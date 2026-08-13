@@ -9,6 +9,7 @@ export default {
       type: 'string',
       validation: (Rule: any) => Rule.required().max(120),
     },
+    
     {
       name: 'slug',
       title: 'Slug',
@@ -68,6 +69,8 @@ export default {
           { title: 'Education', value: 'education' },
           { title: 'Entertainment', value: 'entertainment' },
           { title: 'TECH', value: 'technology' },
+          { title: 'Explainer', value: 'explainer'},
+          { title: 'Edu Consult', value: 'edu-consult'},
         ],
       },
     },
@@ -193,4 +196,40 @@ export default {
   preview: {
     select: { title: 'headline', subtitle: 'category', media: 'featuredImage' },
   },
+}
+
+// src/lib/comments.ts
+interface RawComment {
+  _id: string
+  name: string
+  body: string
+  submittedAt: string
+  likes: number
+  parentId?: string
+}
+
+export interface ThreadedComment extends RawComment {
+  replies: ThreadedComment[]
+}
+
+export function buildCommentTree(comments: RawComment[]): ThreadedComment[] {
+  const map = new Map<string, ThreadedComment>()
+  const roots: ThreadedComment[] = []
+
+  // First pass: create nodes
+  for (const c of comments) {
+    map.set(c._id, { ...c, replies: [] })
+  }
+
+  // Second pass: link children
+  for (const c of comments) {
+    const node = map.get(c._id)!
+    if (c.parentId && map.has(c.parentId)) {
+      map.get(c.parentId)!.replies.push(node)
+    } else {
+      roots.push(node)
+    }
+  }
+
+  return roots
 }
