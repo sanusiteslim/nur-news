@@ -1,4 +1,4 @@
-import { client, articleQuery, relatedArticlesQuery, commentsQuery } from '@/lib/sanity'
+import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { urlForImage } from '@/lib/image'
@@ -8,13 +8,11 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
-import Comments from '@/components/article/Comments'
 import ArticleWrapper from './loading'
 import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
-import { buildCommentTree } from '@/lib/comments'
 import type { Metadata } from 'next'
 
 export const revalidate = 5
@@ -66,8 +64,6 @@ export default async function ArticlePage({ params }: { params: { category: stri
     slug: params.slug,
   })
 
-  const rawComments = await client.fetch(commentsQuery, { articleId: article._id })
-  const comments = buildCommentTree(rawComments)
 
 
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
@@ -239,7 +235,6 @@ export default async function ArticlePage({ params }: { params: { category: stri
           </div>
         )}
         
-        <Comments articleId={article._id} comments={comments || []} />
         <RelatedArticles articles={relatedArticles} />
       </article>
   )
