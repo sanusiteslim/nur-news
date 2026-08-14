@@ -14,6 +14,7 @@ import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
+import { buildCommentTree } from '@/lib/comments'
 import type { Metadata } from 'next'
 
 export const revalidate = 5
@@ -65,7 +66,9 @@ export default async function ArticlePage({ params }: { params: { category: stri
     slug: params.slug,
   })
 
-  const comments = await client.fetch(commentsQuery, { articleId: article._id })
+  const rawComments = await client.fetch(commentsQuery, { articleId: article._id })
+  const comments = buildCommentTree(rawComments)
+
 
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
   const readingTime = getReadingTime(article.body)
@@ -235,9 +238,9 @@ export default async function ArticlePage({ params }: { params: { category: stri
             </div>
           </div>
         )}
-
-        <RelatedArticles articles={relatedArticles} />
+        
         <Comments articleId={article._id} comments={comments || []} />
+        <RelatedArticles articles={relatedArticles} />
       </article>
   )
 }

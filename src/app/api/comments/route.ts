@@ -1,68 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { randomUUID } from 'crypto'
-import { writeClient } from '@/lib/sanity-write'
+import { client } from '@/lib/sanity'
+import { groq } from 'next-sanity'
 
-const MAX_COMMENT_LENGTH = 1000
-const MIN_FORM_FILL_MS = 3000 // reject submissions faster than a human could type
-
-export async function POST(request: NextRequest) {
-  let body: any
+export async function POST(req: NextRequest) {
   try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
+    const body = await req.json()
+    const { articleId, name, email, body: commentBody, website, parentId, formLoadedAt } = body
 
-  const {
-    articleId,
-    name,
-    body: commentBody,
-    website, // honeypot field — real users never fill this in
-    formLoadedAt, // timestamp (ms) from when the form rendered client-side
-  } = body ?? {}
+    // Honeypot check
+    if (website && website.trim() !== '') {
+      return NextResponse.json({ error: 'Spam detected' }, { status: 400 })
+    }
 
-  // Honeypot: bots fill every field, humans never see this one (it's hidden via CSS)
-  if (website) {
-    return NextResponse.json({ ok: true }) // pretend success, drop silently
-  }
+    // Bot-speed check (< 3 seconds)
+    if (formLoadedAt && Date.now() - formLoadedAt < 3000) {
+      return NextResponse.json({ error: 'Too fast' }, { status: 400 })
+    }
 
-  // Basic bot-speed check: reject if the form was "submitted" implausibly fast
-  if (typeof formLoadedAt === 'number' && Date.now() - formLoadedAt < MIN_FORM_FILL_MS) {
-    return NextResponse.json({ error: 'Please try again.' }, { status: 400 })
-  }
+    if (!articleId || !name?.trim() || !commentBody?.trim()) {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    }
 
-  if (typeof articleId !== 'string' || !articleId.trim()) {
-    return NextResponse.json({ error: 'Missing article reference.' }, { status: 400 })
-  }
+    // Verify article exists
+    const article = await client.fetch(
+      groq`*[_type == "article" && _id == $articleId][0]._id`,
+      { articleId }
+    )
+    if (!article) {
+      return NextResponse.json({ error: 'Article not found' }, { status: 404 })
+    }
 
-  if (typeof name !== 'string' || !name.trim()) {
-    return NextResponse.json({ error: 'Name is required.' }, { status: 400 })
-  }
+    // If parentId provided, verify parent comment exists
+    if (parentId) {
+      const parent = await client.fetch(
+        groq`*[_type == "comment" && _id == $parentId][0]._id`,
+        { parentId }
+      )
+      if (!parent) {
+        return NextResponse.json({ error: 'Parent comment not found' }, { status: 404 })
+      }
+    }
 
-  if (typeof commentBody !== 'string' || !commentBody.trim()) {
-    return NextResponse.json({ error: 'Comment cannot be empty.' }, { status: 400 })
-  }
+    const ip = req.headers.get('x-forwarded-for') || 'unknown'
 
-  if (commentBody.length > MAX_COMMENT_LENGTH) {
-    return NextResponse.json({ error: `Comment must be under ${MAX_COMMENT_LENGTH} characters.` }, { status: 400 })
-  }
-
-  try {
-    await writeClient.create({
-      // Same trick as tips: explicit drafts.* id means this is created as a
-      // draft, invisible on the site until an editor publishes it in Studio.
-      // Lets the write token stay scoped to "Contributor" (drafts only).
-      _id: `drafts.comment-${randomUUID()}`,
+    const doc = {
       _type: 'comment',
-      article: { _type: 'reference', _ref: articleId },
-      name: name.trim().slice(0, 80),
+      articleId,
+      name: name.trim(),
+      email: email?.trim() || '',
       body: commentBody.trim(),
+      parentId: parentId || '',
+      likes: 0,
+      approved: false,
       submittedAt: new Date().toISOString(),
-    })
+      website: '',
+      ipAddress: ip,
+    }
 
-    return NextResponse.json({ ok: true })
-  } catch (error) {
-    console.error('Error creating comment:', error)
-    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
+    const result = await client.create(doc)
+
+    return NextResponse.json({ success: true, _id: result._id }, { status: 201 })
+  } catch (err) {
+    console.error('Comment POST error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

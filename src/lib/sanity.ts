@@ -91,9 +91,15 @@ export const categoryQuery = (category: string) => `
 
 // Full-text-ish search across headline, excerpt, and body.
 // Pass the term already wildcarded, e.g. client.fetch(searchQuery, { term: `${q}*` })
+// src/lib/sanity.ts
 export const commentsQuery = `
-  *[_type == "comment" && article._ref == $articleId] | order(submittedAt desc) {
-    _id, name, body, submittedAt
+  *[_type == "comment" && articleId == $articleId && approved == true] | order(submittedAt asc) {
+    _id,
+    name,
+    body,
+    submittedAt,
+    likes,
+    parentId
   }
 `
 
