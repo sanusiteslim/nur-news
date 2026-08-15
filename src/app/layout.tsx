@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
+import ElectionTicker from '@/components/election/ElectionTicker'
 import Footer from '@/components/layout/Footer'
 import NotificationPrompt from '@/components/NotificationPrompt'
 import { getSiteUrl } from '@/lib/site'
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased bg-white text-text-primary">
         {/* Your sticky header, main pages, and footer layout layout */}        
         <Navbar />
+        <ElectionTicker />
         <main className="min-h-screen">{children}</main>
         <Footer />
         <NotificationPrompt />
