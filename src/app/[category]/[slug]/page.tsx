@@ -13,6 +13,8 @@ import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
+import ElectionTracker from '@/components/election/ElectionTracker'
+import ElectionUpdateFeed from '@/components/election/ElectionUpdateFeed'
 import type { Metadata } from 'next'
 
 export const revalidate = 5
@@ -234,6 +236,13 @@ export default async function ArticlePage({ params }: { params: { category: stri
             </div>
           </div>
         )}
+
+        {article.slug?.current?.includes('osun') && (
+  <div className="mt-10">
+    <ElectionTracker slug="osun-2026-governorship" />
+    {/* If you want the feed too, pass updates from Sanity or fetch them */}
+  </div>
+)}
         
         <RelatedArticles articles={relatedArticles} />
       </article>
