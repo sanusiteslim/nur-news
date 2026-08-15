@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { redis } from '@/lib/redis'
+import { OSUN_LGAS } from '@/lib/election'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,35 +18,69 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { slug, votes, reportingPercent } = body
+    const { slug, lga, votes, reportingPercent } = body
 
-    if (!slug || !votes || typeof reportingPercent !== 'number') {
+    if (!slug || !lga || !votes || typeof reportingPercent !== 'number') {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
 
-    const redisKey = `election:${slug}`
-    const payload: Record<string, number> = {}
-    let calculatedTotal = 0
+    if (!OSUN_LGAS.includes(lga)) {
+      return NextResponse.json({ error: 'Invalid LGA' }, { status: 400 })
+    }
+
+    const redisKey = `election:${slug}:lgas`
+    let totalVotes = 0
+    const cleanVotes: Record<string, number> = {}
 
     Object.entries(votes).forEach(([party, count]) => {
       const val = Math.max(0, Number(count) || 0)
-      payload[`votes:${party}`] = val
-      calculatedTotal += val
+      cleanVotes[party] = val
+      totalVotes += val
     })
 
-    payload.totalVotes = calculatedTotal
-    payload.reportingPercent = Math.min(100, Math.max(0, Math.round(reportingPercent)))
-    payload.lastUpdated = Math.floor(Date.now() / 1000)
+    const payload = {
+      votes: cleanVotes,
+      totalVotes,
+      reportingPercent: Math.min(100, Math.max(0, Math.round(reportingPercent))),
+    }
 
-    await redis.hset(redisKey, payload)
+    await redis.hset(redisKey, { [lga]: JSON.stringify(payload) })
+
+    // Also update statewide totals automatically by aggregating all LGAs
+    const allLgas = await redis.hgetall(redisKey)
+    let statewideTotal = 0
+    const statewideVotes: Record<string, number> = {}
+
+    Object.values(allLgas || {}).forEach((lgaData: any) => {
+      try {
+        const parsed = typeof lgaData === 'string' ? JSON.parse(lgaData) : lgaData
+        statewideTotal += parsed.totalVotes || 0
+        Object.entries(parsed.votes || {}).forEach(([party, count]) => {
+          statewideVotes[party] = (statewideVotes[party] || 0) + (count as number)
+        })
+      } catch { /* skip corrupt data */ }
+    })
+
+    const stateKey = `election:${slug}`
+    const statePayload: Record<string, number> = {
+      totalVotes: statewideTotal,
+      reportingPercent: payload.reportingPercent, // Use latest or calculate average
+      lastUpdated: Math.floor(Date.now() / 1000),
+    }
+
+    Object.entries(statewideVotes).forEach(([party, count]) => {
+      statePayload[`votes:${party}`] = count
+    })
+
+    await redis.hset(stateKey, statePayload)
 
     return NextResponse.json({
       success: true,
-      totalVotes: calculatedTotal,
-      reportingPercent: payload.reportingPercent,
+      lga: payload,
+      statewide: { totalVotes: statewideTotal, votes: statewideVotes },
     })
   } catch (err) {
-    console.error('Election update error:', err)
+    console.error('LGA update error:', err)
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
 }

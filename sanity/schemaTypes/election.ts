@@ -40,6 +40,21 @@ export default defineType({
               description: 'Uppercase, e.g., APC, PDP, LP',
               validation: (Rule) => Rule.required().max(10),
             }),
+
+            defineField({
+                name: 'partyName',
+                title: 'Full Party Name',
+                type: 'string',
+                description: 'e.g., All Progressives Congress',
+                validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+            name: 'partyFlag',
+            title: 'Party Flag / Logo',
+            type: 'image',
+            options: { hotspot: true },
+            }),
+
             defineField({
               name: 'name',
               title: 'Candidate Name',

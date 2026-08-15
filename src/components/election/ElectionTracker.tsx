@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface Candidate {
   partyCode: string
+  partyName: string
+  partyFlagUrl?: string
   name: string
   color: string
   imageUrl?: string
@@ -20,8 +22,13 @@ interface ElectionData {
   candidates: Candidate[]
 }
 
-export default function ElectionTracker({ slug }: { slug: string }) {
-  const [data, setData] = useState<ElectionData | null>(null)
+interface ElectionTrackerProps {
+  slug: string
+  initialData?: ElectionData | null
+}
+
+export default function ElectionTracker({ slug, initialData }: ElectionTrackerProps) {
+  const [data, setData] = useState<ElectionData | null>(initialData || null)
   const [pulse, setPulse] = useState(false)
   const [stale, setStale] = useState(false)
   const [error, setError] = useState(false)
@@ -37,16 +44,21 @@ export default function ElectionTracker({ slug }: { slug: string }) {
       if (!res.ok) throw new Error('Fetch failed')
 
       const json = await res.json()
-      setData(json)
+      setData({
+        title: json.title,
+        subtitle: json.subtitle,
+        totalVotes: json.totalVotes,
+        reportingPercent: json.reportingPercent,
+        lastUpdated: json.lastUpdated,
+        candidates: json.candidates,
+      })
       setError(false)
       setStale(false)
 
-      // Visual pulse
       setPulse(true)
       if (pulseTimer.current) clearTimeout(pulseTimer.current)
       pulseTimer.current = setTimeout(() => setPulse(false), 2000)
 
-      // Stale detection: if no fetch in 45s, mark stale
       if (staleTimer.current) clearTimeout(staleTimer.current)
       staleTimer.current = setTimeout(() => setStale(true), 45000)
     } catch (e) {
@@ -56,14 +68,14 @@ export default function ElectionTracker({ slug }: { slug: string }) {
   }, [slug])
 
   useEffect(() => {
-    fetchResults()
+    if (!initialData) fetchResults()
     const interval = setInterval(fetchResults, 15000)
     return () => {
       clearInterval(interval)
       if (pulseTimer.current) clearTimeout(pulseTimer.current)
       if (staleTimer.current) clearTimeout(staleTimer.current)
     }
-  }, [fetchResults])
+  }, [fetchResults, initialData])
 
   if (!data && !error) {
     return (
@@ -92,11 +104,8 @@ export default function ElectionTracker({ slug }: { slug: string }) {
 
   if (!data) return null
 
-  const leader = data.candidates[0]
-
   return (
     <div className="bg-surface-card border border-gray-200 rounded-xl overflow-hidden">
-      {/* Header */}
       <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -123,7 +132,6 @@ export default function ElectionTracker({ slug }: { slug: string }) {
         )}
       </div>
 
-      {/* Candidates */}
       <div className="px-5 py-5 sm:px-6 space-y-5">
         {data.candidates.map((c, i) => (
           <div key={c.partyCode} className="space-y-1.5">
@@ -136,12 +144,27 @@ export default function ElectionTracker({ slug }: { slug: string }) {
                     className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0"
                   />
                 )}
-                <span
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-[10px] font-bold text-white shrink-0"
-                  style={{ backgroundColor: c.color }}
-                >
-                  {c.partyCode}
-                </span>
+               <div className="flex items-center gap-2 min-w-0">
+  {c.partyFlagUrl ? (
+    <img
+      src={c.partyFlagUrl}
+      alt={c.partyName || c.partyCode}
+      className="w-8 h-8 rounded object-cover border border-gray-200 shrink-0 bg-white"
+    />
+  ) : (
+    <span
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full text-[10px] font-bold text-white shrink-0"
+      style={{ backgroundColor: c.color }}
+    >
+      {c.partyCode}
+    </span>
+  )}
+  <div className="flex flex-col leading-tight">
+    <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide">
+      {c.partyName || c.partyCode}
+    </span>
+  </div>
+</div>
                 <span className="font-semibold text-text-primary truncate">
                   {c.name}
                 </span>
@@ -171,7 +194,6 @@ export default function ElectionTracker({ slug }: { slug: string }) {
         ))}
       </div>
 
-      {/* Footer */}
       <div className="px-5 py-3 sm:px-6 bg-surface-offwhite border-t border-gray-100 flex items-center justify-between text-[11px] sm:text-xs text-text-muted">
         <span>
           {data.totalVotes.toLocaleString()} votes · {data.reportingPercent}% PU reporting

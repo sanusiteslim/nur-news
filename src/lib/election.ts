@@ -2,6 +2,8 @@ import { groq } from 'next-sanity'
 
 export interface CandidateProfile {
   partyCode: string
+  partyName: string
+  partyFlagUrl?: string
   name: string
   color: string
   imageUrl?: string
@@ -19,6 +21,12 @@ export interface ElectionProfile {
   }[]
 }
 
+export interface LGAResult {
+  votes: Record<string, number>
+  totalVotes: number
+  reportingPercent: number
+}
+
 export interface ElectionResults {
   title: string
   subtitle?: string
@@ -34,7 +42,10 @@ export interface ElectionResults {
     percentage: number
   }[]
   updates?: ElectionProfile['updates']
+  lgas?: Record<string, LGAResult>
 }
+
+
 
 export const electionProfileQuery = groq`
   *[_type == "election" && slug.current == $slug][0] {
@@ -43,6 +54,8 @@ export const electionProfileQuery = groq`
     slug,
     candidates[] {
       partyCode,
+      partyName,
+      "partyFlagUrl": partyFlag.asset->url,
       name,
       color,
       "imageUrl": image.asset->url
@@ -54,3 +67,11 @@ export const electionProfileQuery = groq`
     }
   }
 `
+// All 30 Osun LGAs
+export const OSUN_LGAS = [
+  'Aiyedaade', 'Aiyedire', 'Atakumosa East', 'Atakumosa West', 'Boluwaduro',
+  'Boripe', 'Ede North', 'Ede South', 'Egbedore', 'Ejigbo', 'Ife Central',
+  'Ife East', 'Ife North', 'Ife South', 'Ifedayo', 'Ifelodun', 'Ila',
+  'Ilesa East', 'Ilesa West', 'Irepodun', 'Irewole', 'Isokan', 'Iwo',
+  'Obokun', 'Odo Otin', 'Ola Oluwa', 'Olorunda', 'Oriade', 'Orolu', 'Osogbo',
+]
