@@ -1,28 +1,54 @@
-import { Metadata } from 'next'
+'use client'
+
+import { useState, useEffect } from 'react'
 import ElectionTracker from '@/components/election/ElectionTracker'
 import ElectionUpdateFeed from '@/components/election/ElectionUpdateFeed'
 import LGAResults from '@/components/election/LGAResults'
 
-export const metadata: Metadata = {
-  title: 'Live Election Results | Osun 2026 | NURR',
-  description: 'Real-time Osun State governorship election results by local government area.',
-}
+export default function LivePage() {
+  const [data, setData] = useState<any>(null)
+  const [error, setError] = useState(false)
 
-export const dynamic = 'force-dynamic'
+  useEffect(() => {
+    fetch('/api/election/results?slug=osun-2026-governorship&lgas=true', {
+      cache: 'no-store',
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.error) throw new Error(json.error)
+        setData(json)
+        setError(false)
+      })
+      .catch(() => setError(true))
+  }, [])
 
-export default async function LivePage() {
-  const slug = 'osun-2026-governorship'
+  if (error) {
+    return (
+      <main className="max-w-5xl mx-auto px-4 py-12 text-center">
+        <p className="text-accent-red font-medium">Unable to load election data.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-3 text-sm text-brand-700 font-medium hover:underline"
+        >
+          Retry
+        </button>
+      </main>
+    )
+  }
 
-  // Fetch initial data server-side for SEO/skeleton
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/election/results?slug=${slug}&lgas=true`, {
-    cache: 'no-store',
-  })
-
-  const data = res.ok ? await res.json() : null
+  if (!data) {
+    return (
+      <main className="max-w-5xl mx-auto px-4 py-12 text-center">
+        <div className="inline-flex items-center gap-2 text-text-muted text-sm">
+          <span className="w-2 h-2 rounded-full bg-brand-700 animate-pulse" />
+          Loading election data…
+        </div>
+      </main>
+    )
+  }
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-      {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-accent-red text-white uppercase tracking-wide">
@@ -38,20 +64,15 @@ export default async function LivePage() {
         </p>
       </div>
 
-      {/* Statewide Tracker (Client-side polling) */}
-      <ElectionTracker slug={slug} initialData={data} />
+      <ElectionTracker slug="osun-2026-governorship" initialData={data} />
 
-      {/* Update Feed */}
       {data?.updates && data.updates.length > 0 && (
         <div className="mt-6">
           <ElectionUpdateFeed updates={data.updates} />
         </div>
       )}
 
-      {/* LGA Breakdown */}
-      {data?.lgas && (
-        <LGAResults lgas={data.lgas} />
-      )}
+      {data?.lgas && <LGAResults lgas={data.lgas} />}
     </main>
   )
 }

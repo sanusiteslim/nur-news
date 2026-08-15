@@ -10,7 +10,13 @@ export async function GET() {
       *[_type == "election"] | order(title asc) {
         "slug": slug.current,
         title,
-        candidates[] { partyCode, name, color }
+        candidates[] {
+        partyCode,
+        partyName,
+        "partyFlagUrl": partyFlag.asset->url,
+        name,
+        color
+    }
       }
     `)
 
