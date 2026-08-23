@@ -1,4 +1,4 @@
-/node_modules
+/.node_modules
 /.next
 /.vscode
 /.vercel
@@ -7,3 +7,4 @@
 *.log
 next-env.d.ts
 .env.example
+node_modules

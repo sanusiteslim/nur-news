@@ -214,6 +214,41 @@ export default async function ArticlePage({ params }: { params: { category: stri
   />
 </div>
 
+{article.category === 'opinion' && (
+  <div className="my-8">
+    {/* Disclaimer */}
+    <p className="text-text-secondary bold italic text-base leading-relaxed">
+      The views expressed in this article are the author&apos;s own and do not necessarily reflect NUR Report&apos;s editorial stance.
+    </p>
+
+    {/* Divider – subtle brand-green line to match the site palette */}
+    <div className="border-t border-brand-700/30 my-6" />
+
+    {/* Author bio card */}
+    {article.author && (
+      <div className="flex items-start gap-4">
+        {article.author.photo && (
+          <Image
+            src={urlForImage(article.author.photo).width(64).height(64).url()}
+            alt={article.author.name}
+            width={64}
+            height={64}
+            className="rounded-full flex-shrink-0 object-cover"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-text-primary text-base">
+            {article.author.name}
+          </p>
+          <p className="text-sm text-text-secondary leading-relaxed mt-1">
+            {article.author.bio || article.author.role}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+)}
+
         {article.hasLiveUpdates && article.liveUpdates && article.liveUpdates.length > 0 && (
           <div className="mt-12 bg-surface-offwhite rounded-lg p-6">
             <h3 className="flex items-center gap-2 text-lg font-bold mb-4">
@@ -237,12 +272,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
           </div>
         )}
 
-        {article.slug?.current?.includes('osun') && (
-  <div className="mt-10">
-    <ElectionTracker slug="osun-2026-governorship" />
-    {/* If you want the feed too, pass updates from Sanity or fetch them */}
-  </div>
-)}
+
         
         <RelatedArticles articles={relatedArticles} />
       </article>
