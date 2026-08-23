@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Facebook, Twitter, MessageCircle, Link2, Check } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa';
 
 export default function ShareButtons({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false)
@@ -14,7 +15,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
     },
     {
       name: 'WhatsApp',
-      Icon: MessageCircle,
+      Icon: FaWhatsapp,
       href: `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
     },
     {

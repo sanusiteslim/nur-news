@@ -2,17 +2,23 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { urlForImage } from '@/lib/image'
 import { formatDistanceToNow } from 'date-fns'
-import SectionHighlight from '@/components/sections/SectionHighlight'
 
 export default function ArticleCard({ article }: { article: any }) {
   if (!article) return null
+
+  const hasImage = article.featuredImage?.asset
 
   return (
     <Link href={`/${article.category}/${article.slug.current}`} className="group block">
       <article className="bg-surface-card rounded-lg overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300">
         <div className="relative aspect-[16/9] overflow-hidden">
-          {article.featuredImage ? (
-            <Image src={urlForImage(article.featuredImage).width(600).height(338).url()} alt={article.featuredImage.alt || article.headline} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+          {hasImage ? (
+            <Image
+              src={urlForImage(article.featuredImage).width(600).height(338).url()}
+              alt={article.featuredImage.alt || article.headline}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
           ) : (
             <div className="w-full h-full bg-brand-100 flex items-center justify-center">
               <span className="text-brand-800 font-bold text-2xl">NURR</span>

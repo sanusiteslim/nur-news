@@ -71,8 +71,7 @@ export default {
           { title: 'Education', value: 'education' },
           { title: 'Entertainment', value: 'entertainment' },
           { title: 'Tech', value: 'technology' },
-          {title: 'Sports', value: 'Sports'},
-          
+          {title: 'Sports', value: 'Sports'},          
           {title: 'Science', value: 'science'},
           {title: 'AI', value: 'AI'},
           { title: 'Explainer', value: 'explainer'},
