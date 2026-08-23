@@ -1,3 +1,5 @@
+import { title } from "process"
+
 export default {
   name: 'article',
   title: 'Article',
@@ -68,7 +70,11 @@ export default {
           { title: 'Health', value: 'health' },
           { title: 'Education', value: 'education' },
           { title: 'Entertainment', value: 'entertainment' },
-          { title: 'TECH', value: 'technology' },
+          { title: 'Tech', value: 'technology' },
+          {title: 'Sports', value: 'Sports'},
+          
+          {title: 'Science', value: 'science'},
+          {title: 'AI', value: 'AI'},
           { title: 'Explainer', value: 'explainer'},
           { title: 'Edu Consult', value: 'edu-consult'},
         ],
