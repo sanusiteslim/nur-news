@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: { category: string;
   if (!article) return { title: 'Article Not Found | NURR' }
 
   const path = `/${params.category}/${params.slug}`
-  const ogImage = article.featuredImage
+  const ogImage = article.featuredImage?.asset
     ? urlForImage(article.featuredImage).width(1200).height(630).url()
     : undefined
 
@@ -66,7 +66,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
   const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
   const readingTime = getReadingTime(article.body)
 
-  const articleImage = article.featuredImage
+  const articleImage = article.featuredImage?.asset
     ? urlForImage(article.featuredImage).width(1200).height(630).url()
     : undefined
 
@@ -130,6 +130,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
 
       {(() => {
         const embedUrl = article.videoUrl ? getEmbedUrl(article.videoUrl) : null
+        const hasImage = article.featuredImage?.asset
 
         if (embedUrl) {
           return (
@@ -150,16 +151,29 @@ export default async function ArticlePage({ params }: { params: { category: stri
           )
         }
 
-        if (article.featuredImage) {
+        if (hasImage) {
           return (
             <figure className="mb-8">
-              <Image src={urlForImage(article.featuredImage).width(1200).height(675).url()} alt={article.featuredImage.alt || article.headline} width={1200} height={675} className="w-full rounded-lg" priority />
-              {article.featuredImage.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>}
+              <Image
+                src={urlForImage(article.featuredImage).width(1200).height(675).url()}
+                alt={article.featuredImage.alt || article.headline}
+                width={1200}
+                height={675}
+                className="w-full rounded-lg"
+                priority
+              />
+              {article.featuredImage.caption && (
+                <figcaption className="text-sm text-text-muted mt-2 text-center">{article.featuredImage.caption}</figcaption>
+              )}
             </figure>
           )
         }
 
-        return null
+        return (
+          <div className="w-full aspect-video rounded-lg overflow-hidden bg-brand-100 flex items-center justify-center mb-8">
+            <span className="text-brand-800 font-bold text-4xl">NURR</span>
+          </div>
+        )
       })()}
 
       <div className="article-body">
@@ -190,18 +204,21 @@ export default async function ArticlePage({ params }: { params: { category: stri
               em: ({ children }: any) => <em className="italic">{children}</em>,
             },
             types: {
-              image: ({ value }: any) => (
-                <figure className="my-8">
-                  <Image
-                    src={urlForImage(value).width(800).height(500).url()}
-                    alt={value.alt || ''}
-                    width={800}
-                    height={500}
-                    className="w-full rounded-lg"
-                  />
-                  {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
-                </figure>
-              ),
+              image: ({ value }: any) => {
+                if (!value?.asset) return null
+                return (
+                  <figure className="my-8">
+                    <Image
+                      src={urlForImage(value).width(800).height(500).url()}
+                      alt={value.alt || ''}
+                      width={800}
+                      height={500}
+                      className="w-full rounded-lg"
+                    />
+                    {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
+                  </figure>
+                )
+              },
               adBreak: () => <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_IN_ARTICLE_SLOT} />,
             },
           }}

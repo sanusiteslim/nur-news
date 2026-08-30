@@ -27,18 +27,21 @@ const components = {
     em: ({ children }: any) => <em className="italic">{children}</em>,
   },
   types: {
-    image: ({ value }: any) => (
-      <figure className="my-8">
-        <Image
-          src={urlFor(value).url()}
-          alt={value.alt || ''}
-          width={800}
-          height={500}
-          className="rounded-lg w-full"
-        />
-        {value.caption && <figcaption className="text-sm text-gray-500 mt-2 text-center">{value.caption}</figcaption>}
-      </figure>
-    ),
+    image: ({ value }: any) => {
+      if (!value?.asset) return null;
+      return (
+        <figure className="my-8">
+          <Image
+            src={urlFor(value).url()}
+            alt={value.alt || ''}
+            width={800}
+            height={500}
+            className="rounded-lg w-full"
+          />
+          {value.caption && <figcaption className="text-sm text-gray-500 mt-2 text-center">{value.caption}</figcaption>}
+        </figure>
+      );
+    },
   },
 };
 
