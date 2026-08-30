@@ -16,9 +16,9 @@ export default function BreakingBanner({ article }: { article: any }) {
               Breaking
             </span>
           </div>
-          {article.featuredImage && (
+          {article.featuredImage?.asset && (
             <div className="hidden md:block w-32 h-20 relative rounded overflow-hidden flex-shrink-0">
-              <Image src={urlForImage(article.featuredImage).width(128).height(80).url()} alt={article.headline} fill className="object-cover" />
+              <Image src={urlForImage(article.featuredImage).width(128).height(80).url()} alt={article.headline} fill sizes="128px" className="object-cover" />
             </div>
           )}
           <Link href={`/${article.category}/${article.slug.current}`} className="group flex-1">

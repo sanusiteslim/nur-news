@@ -74,6 +74,7 @@ export default function SectionOpinion({ data }: { data: any }) {
                     .url()}
                   alt={featured.featuredImage.alt || featured.headline}
                   fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               ) : (
@@ -116,6 +117,7 @@ export default function SectionOpinion({ data }: { data: any }) {
                           .url()}
                         alt={article.featuredImage.alt || article.headline}
                         fill
+                        sizes="(max-width: 768px) 112px, 128px"
                         className="object-cover"
                       />
                     ) : (

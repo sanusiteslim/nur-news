@@ -11,8 +11,8 @@ export default function HeroSection({ heroStory, sidebarStories }: any) {
       <div className="lg:col-span-8">
         <Link href={`/${heroStory.category}/${heroStory.slug.current}`} className="group block">
           <div className="relative -mx-4 sm:mx-0 aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/9] rounded-none sm:rounded-lg overflow-hidden">
-            {heroStory.featuredImage ? (
-              <Image src={urlForImage(heroStory.featuredImage).width(1200).height(675).url()} alt={heroStory.featuredImage.alt || heroStory.headline} fill className="object-cover transition-transform duration-500 group-hover:scale-105" priority />
+            {heroStory.featuredImage?.asset ? (
+              <Image src={urlForImage(heroStory.featuredImage).width(1200).height(675).url()} alt={heroStory.featuredImage.alt || heroStory.headline} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover transition-transform duration-500 group-hover:scale-105" priority />
             ) : (
               <div className="w-full h-full bg-brand-100 flex items-center justify-center">
                 <span className="text-brand-800 font-bold text-4xl">NUR</span>
@@ -47,9 +47,9 @@ function SidebarCard({ story, label }: { story: any; label?: string }) {
       <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 mb-1">{label || 'Latest'}</p>
       <Link href={`/${story.category}/${story.slug.current}`} className="group">
         <div className="flex gap-3">
-          {story.featuredImage && (
+          {story.featuredImage?.asset && (
             <div className="relative w-20 h-14 flex-shrink-0 rounded overflow-hidden">
-              <Image src={urlForImage(story.featuredImage).width(80).height(56).url()} alt={story.headline} fill className="object-cover" />
+              <Image src={urlForImage(story.featuredImage).width(80).height(56).url()} alt={story.headline} fill sizes="80px" className="object-cover" />
             </div>
           )}
           <div className="flex-1 min-w-0">

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Facebook, Instagram, X, Youtube, Rss } from 'lucide-react'
 
 const footerLinks = {
   'Sections': [
@@ -28,11 +29,48 @@ const footerLinks = {
   ],
 }
 
+// TODO: replace with NUR Report's real social profile URLs before launch —
+// these are placeholders so the footer doesn't ship with links to the wrong
+// accounts. Swap the '#' hrefs for the actual profiles.
+const socialLinks = [
+  { label: 'Facebook', href: '#', icon: Facebook },
+  { label: 'X (Twitter)', href: '#', icon: X },
+  { label: 'Instagram', href: '#', icon: Instagram },
+  { label: 'YouTube', href: '#', icon: Youtube },
+  { label: 'RSS Feed', href: '/rss.xml', icon: Rss },
+]
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+          {/* Masthead / editorial standards blurb */}
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">About NURR</h3>
+            <p className="text-gray-300 text-sm leading-relaxed">
+              NUR Report is an independent newsroom covering Nigeria, Africa, and the world. Our reporting is fact-checked, sourced, and edited to a consistent editorial standard before publication.
+            </p>
+            <Link href="/about" className="inline-block mt-3 text-sm font-medium text-brand-500 hover:text-brand-100 underline underline-offset-2 transition-colors">
+              Read our editorial standards →
+            </Link>
+
+            <div className="flex items-center gap-3 mt-6">
+              {socialLinks.map(({ label, href, icon: Icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith('/') ? undefined : '_blank'}
+                  rel={href.startsWith('/') ? undefined : 'noopener noreferrer'}
+                  aria-label={label}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 text-gray-300 hover:bg-brand-700 hover:text-white transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          </div>
+
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">{title}</h3>

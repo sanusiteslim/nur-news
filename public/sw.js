@@ -10,8 +10,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: payload.body,
-    icon: '/icon.svg',
-    badge: '/icon.svg',
+    icon: '/icon-512.png',
+    badge: '/badge.png',
     image: payload.image,
     data: { url: payload.url || '/' },
     tag: payload.url, // replaces older notifications for the same article

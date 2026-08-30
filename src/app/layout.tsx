@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
@@ -23,6 +23,15 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "J_jRy_4vHvjTX-mMnvVRbbOeEj_hkijiayhAA-5DAHs", // Paste just the long code string here
+  },
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {
   capable: true,
@@ -51,6 +60,10 @@ formatDetection: {
     description: siteDescription,
   },
 }
+export const viewport: Viewport = {
+  themeColor: '#1B5E20',
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
    const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
    const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID

@@ -25,7 +25,7 @@ interface VideoCardProps {
 export default function VideoCard({ article, size = 'md' }: VideoCardProps) {
   const thumb =
     (article.videoUrl && getVideoThumbnail(article.videoUrl)) ||
-    (article.featuredImage && urlForImage(article.featuredImage).width(640).height(360).url()) ||
+    (article.featuredImage?.asset && urlForImage(article.featuredImage).width(640).height(360).url()) ||
     null
 
   const aspect = size === 'lg' ? 'aspect-video' : size === 'sm' ? 'aspect-video' : 'aspect-video'

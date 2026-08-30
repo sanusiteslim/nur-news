@@ -49,7 +49,7 @@ export default async function VideoPage() {
                 {(() => {
                   const thumb =
                     (latest.videoUrl && getVideoThumbnail(latest.videoUrl)) ||
-                    (latest.featuredImage && urlForImage(latest.featuredImage).width(1280).height(720).url()) ||
+                    (latest.featuredImage?.asset && urlForImage(latest.featuredImage).width(1280).height(720).url()) ||
                     null
 
                   return thumb ? (
@@ -57,6 +57,7 @@ export default async function VideoPage() {
                       src={thumb}
                       alt={latest.headline}
                       fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                       priority
                     />

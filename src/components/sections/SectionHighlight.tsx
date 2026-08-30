@@ -15,10 +15,12 @@ export default function SectionHighlight({ data }: { data: any }) {
           <div className="lg:col-span-7">
             <Link href={`/${featured.category}/${featured.slug.current}`} className="group block">
               <div className="relative aspect-[16/9] rounded-lg overflow-hidden mb-3">
-                {featured.featuredImage ? (
-                  <Image src={urlForImage(featured.featuredImage).width(800).height(450).url()} alt={featured.featuredImage.alt || featured.headline} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+                {featured.featuredImage?.asset ? (
+                  <Image src={urlForImage(featured.featuredImage).width(800).height(450).url()} alt={featured.featuredImage.alt || featured.headline} fill sizes="(max-width: 1024px) 100vw, 58vw" className="object-cover transition-transform duration-500 group-hover:scale-105" />
                 ) : (
-                  <div className="w-full h-full bg-brand-100" />
+                  <div className="w-full h-full bg-brand-100 flex items-center justify-center">
+                    <span className="text-brand-800 font-bold text-2xl">NURR</span>
+                  </div>
                 )}
               </div>
               <span className="text-xs font-semibold uppercase tracking-wider text-brand-700">{featured.category}</span>
@@ -33,9 +35,9 @@ export default function SectionHighlight({ data }: { data: any }) {
             {list.map((item: any, i: number) => (
               <Link key={item?.slug?.current || i} href={`/${item.category}/${item.slug.current}`} className="group block">
                 <div className="flex gap-3">
-                  {item.featuredImage && (
+                  {item.featuredImage?.asset && (
                     <div className="relative w-24 h-16 flex-shrink-0 rounded overflow-hidden">
-                      <Image src={urlForImage(item.featuredImage).width(96).height(64).url()} alt={item.headline} fill className="object-cover" />
+                      <Image src={urlForImage(item.featuredImage).width(96).height(64).url()} alt={item.headline} fill sizes="96px" className="object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
