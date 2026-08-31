@@ -12,5 +12,5 @@ import tipSubmission from './tipSubmission'
 
 export const schemaTypes = [
   article, author, homepage, tipSubmission, election,
-  sectionHighlight, sectionGrid, sectionOpinion, sectionVideo, liveUpdate, comment
+  sectionHighlight, sectionGrid, sectionOpinion, sectionVideo, liveUpdate,
 ]
