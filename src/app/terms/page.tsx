@@ -24,7 +24,7 @@ export default function TermsPage() {
 
         <section>
           <h2>3. Content and Intellectual Property</h2>
-          <p>All articles, images, graphics, and other content published on the Site are the property of NUR Report or its licensors and are protected by applicable copyright laws. You may share links to our content but may not reproduce, republish, or redistribute our content without prior written permission.</p>
+          <p>All articles, and other content published on the Site are the property of NUR Report or its licensors and are protected by applicable copyright laws. You may share links to our content but may not reproduce, republish, or redistribute our content without prior written permission.</p>
         </section>
 
         <section>

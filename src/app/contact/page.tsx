@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 // TODO: replace the placeholder email below with your real contact address
-const CONTACT_EMAIL = 'teslimsanusi123@gmail.com'
+const CONTACT_EMAIL = ''
 
 export default function ContactPage() {
   return (

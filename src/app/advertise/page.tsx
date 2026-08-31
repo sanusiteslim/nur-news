@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 // TODO: replace the placeholder email below with your real advertising contact address
-const ADVERTISE_EMAIL = 'teslimsanusi123@gmail.com'
+const ADVERTISE_EMAIL = ''
 
 export default function AdvertisePage() {
   return (

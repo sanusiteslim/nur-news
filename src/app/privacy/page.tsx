@@ -47,10 +47,6 @@ export default function PrivacyPage() {
           <p>Questions about this Privacy Policy can be sent via our <a href="/contact">Contact page</a>.</p>
         </section>
       </div>
-
-      <p className="mt-10 text-sm text-text-muted italic">
-        Note: this is placeholder template content and has not been reviewed by a lawyer. Please have it reviewed by legal counsel — particularly before running ads or collecting any user data — so it accurately reflects your actual data practices and complies with applicable law (e.g. Nigeria's NDPR).
-      </p>
     </div>
   )
 }

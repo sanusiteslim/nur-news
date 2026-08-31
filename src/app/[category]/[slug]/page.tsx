@@ -12,7 +12,7 @@ import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
-import type { Metadata } from 'next'
+import type { Metadata, ResolvingMetadata } from 'next'
 
 export const revalidate = 5
 
