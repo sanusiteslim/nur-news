@@ -1,5 +1,5 @@
 {
-  "createdAt": "2026-08-23T11:50:21.899Z",
+  "createdAt": "2026-08-31T02:48:40.866Z",
   "studioVersion": "6.5.0",
   "version": 3,
   "workspaces": [
@@ -13,7 +13,7 @@
       },
       "name": "nur-news",
       "projectId": "l7g6k8p8",
-      "schema": "b0a717eb.create-schema.json",
+      "schema": "2835aca1.create-schema.json",
       "title": "NUR News",
       "tools": "ef87c8fe.create-tools.json"
     }
