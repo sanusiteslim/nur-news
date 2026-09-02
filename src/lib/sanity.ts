@@ -122,6 +122,17 @@ export const relatedArticlesQuery = `
 `
 
 // Video articles: either category='video' OR has a videoUrl/videoFile
+// Fetches article summaries for a known set of slugs. Used to hydrate the
+// Most Read module: the ranking itself comes from Redis (src/lib/analytics.ts),
+// this just resolves those slugs back into displayable article data. Order
+// from Sanity's `in` filter isn't guaranteed to match $slugs — the caller
+// re-sorts by the original view-count order.
+export const articlesBySlugsQuery = groq`
+  *[_type == "article" && status == "published" && slug.current in $slugs] {
+    headline, slug, category, publishedAt
+  }
+`
+
 export const videoArticlesQuery = groq`
   *[_type == "article" && (category == "video" || defined(videoUrl) || defined(videoFile)) && status == "published"] | order(publishedAt desc) {
     _id,

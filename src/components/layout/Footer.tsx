@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { Facebook, Instagram, X, Youtube, Rss, Twitter } from 'lucide-react'
-import { FaXTwitter } from 'react-icons/fa6';
+import { Facebook, Instagram, X, Youtube, Rss } from 'lucide-react'
 
 const footerLinks = {
   'Sections': [
@@ -34,10 +33,10 @@ const footerLinks = {
 // these are placeholders so the footer doesn't ship with links to the wrong
 // accounts. Swap the '#' hrefs for the actual profiles.
 const socialLinks = [
-  { label: 'Facebook', href: 'https://www.facebook.com/nurrhq', icon: Facebook },
-  { label: 'X (Twitter)', href: 'https://x.com/nurreporthq', icon: FaXTwitter },
-  { label: 'Instagram', href: 'https://www.instagram.com/nurreporthq', icon: Instagram },
-  { label: 'YouTube', href: 'https://www.youtube.com/@nurrhq', icon: Youtube },
+  { label: 'Facebook', href: '#', icon: Facebook },
+  { label: 'X (Twitter)', href: '#', icon: X },
+  { label: 'Instagram', href: '#', icon: Instagram },
+  { label: 'YouTube', href: '#', icon: Youtube },
   { label: 'RSS Feed', href: '/rss.xml', icon: Rss },
 ]
 

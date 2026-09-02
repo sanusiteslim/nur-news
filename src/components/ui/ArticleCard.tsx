@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { urlForImage } from '@/lib/image'
-import { formatDistanceToNow } from 'date-fns'
+import { formatPublishedDate } from '@/lib/formatDate'
 
 export default function ArticleCard({ article }: { article: any }) {
   if (!article) return null
@@ -33,7 +33,7 @@ export default function ArticleCard({ article }: { article: any }) {
           <div className="flex items-center gap-2 mt-3 text-xs text-text-muted">
             <span>{article.author?.name || 'NUR Staff'}</span>
             <span>•</span>
-            <span>{article.publishedAt ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }) : 'Recently'}</span>
+            <span>{article.publishedAt ? formatPublishedDate(article.publishedAt) : 'Recently'}</span>
           </div>
         </div>
       </article>

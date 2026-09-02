@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { urlForImage } from '@/lib/image'
-import { formatDistanceToNow } from 'date-fns'
+import { formatPublishedDate } from '@/lib/formatDate'
 
 export default function SectionHighlight({ data }: { data: any }) {
   if (!data) return null
@@ -42,7 +42,7 @@ export default function SectionHighlight({ data }: { data: any }) {
                   )}
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold text-text-primary group-hover:text-brand-700 transition-colors line-clamp-2">{item.headline}</h4>
-                    <p className="text-xs text-text-muted mt-1">{item.publishedAt ? formatDistanceToNow(new Date(item.publishedAt), { addSuffix: true }) : 'Recently'}</p>
+                    <p className="text-xs text-text-muted mt-1">{item.publishedAt ? formatPublishedDate(item.publishedAt) : 'Recently'}</p>
                   </div>
                 </div>
               </Link>

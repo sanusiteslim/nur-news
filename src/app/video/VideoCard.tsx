@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getVideoThumbnail } from '@/lib/video'
 import { urlForImage } from '@/lib/image'
-import { formatDistanceToNow } from 'date-fns'
+import { formatPublishedDate } from '@/lib/formatDate'
 
 interface VideoCardProps {
   article: {
@@ -73,7 +73,7 @@ export default function VideoCard({ article, size = 'md' }: VideoCardProps) {
       <div className="flex items-center gap-2 mt-2 text-xs text-text-muted">
         <span className="uppercase tracking-wider">{article.category}</span>
         <span>·</span>
-        <span>{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</span>
+        <span>{formatPublishedDate(article.publishedAt)}</span>
         {article.author && (
           <>
             <span>·</span>

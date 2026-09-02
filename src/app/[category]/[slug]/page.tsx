@@ -1,6 +1,7 @@
 import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
+import { formatPublishedDate } from '@/lib/formatDate'
 import { urlForImage } from '@/lib/image'
 import { getEmbedUrl } from '@/lib/video'
 import { getSiteUrl } from '@/lib/site'
@@ -8,11 +9,12 @@ import Image from 'next/image'
 import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
+import ViewTracker from '@/components/article/ViewTracker'
 import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import AdSlot from '@/components/ads/AdSlot'
-import type { Metadata, ResolvingMetadata } from 'next'
+import type { Metadata } from 'next'
 
 export const revalidate = 5
 
@@ -85,12 +87,13 @@ export default async function ArticlePage({ params }: { params: { category: stri
     publisher: {
       '@type': 'Organization',
       name: 'NUR Report',
-      logo: { '@type': 'ImageObject', url: `${getSiteUrl()}/icon.svg` },
+      logo: { '@type': 'ImageObject', url: `${getSiteUrl()}/icon-512.png` },
     },
   }
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <ViewTracker slug={article.slug.current} />
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
@@ -118,7 +121,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
           <div>
             <p className="font-semibold text-text-primary">{article.author?.name}</p>
             <p className="text-sm text-text-muted">
-              {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
+              {formatPublishedDate(article.publishedAt)}
               {article.author?.role && ` · ${article.author.role}`}
               {` · ${readingTime} min read`}
             </p>

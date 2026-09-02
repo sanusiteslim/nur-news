@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { urlForImage } from '@/lib/image'
-import { formatDistanceToNow } from 'date-fns'
+import { formatPublishedDate } from '@/lib/formatDate'
 
 export default function HeroSection({ heroStory, sidebarStories }: any) {
   if (!heroStory) return null
@@ -54,7 +54,7 @@ function SidebarCard({ story, label }: { story: any; label?: string }) {
           )}
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-text-primary leading-snug group-hover:text-brand-700 transition-colors line-clamp-2">{story.headline}</h3>
-            <p className="text-xs text-text-muted mt-1">{story.publishedAt ? formatDistanceToNow(new Date(story.publishedAt), { addSuffix: true }) : 'Recently'}</p>
+            <p className="text-xs text-text-muted mt-1">{story.publishedAt ? formatPublishedDate(story.publishedAt) : 'Recently'}</p>
           </div>
         </div>
       </Link>
