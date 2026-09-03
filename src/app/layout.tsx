@@ -4,7 +4,8 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import ElectionTicker from '@/components/election/ElectionTicker'
 import Footer from '@/components/layout/Footer'
-import NotificationPrompt from '@/components/NotificationPrompt'
+import InstallAndNotifyPrompt from '@/components/pwa/InstallAndNotifyPrompt'
+import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
 import { getSiteUrl } from '@/lib/site'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
@@ -35,7 +36,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
   capable: true,
-  statusBarStyle: 'default',
+  statusBarStyle: 'black-translucent',
   title: 'NURR',
 },
 formatDetection: {
@@ -62,6 +63,7 @@ formatDetection: {
 }
 export const viewport: Viewport = {
   themeColor: '#1B5E20',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -76,7 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ElectionTicker />
         <main className="min-h-screen">{children}</main>
         <Footer />
-        <NotificationPrompt />
+        <ServiceWorkerRegistration />
+        <InstallAndNotifyPrompt />
         {/* 2. Render the analytics script only if the ID exists */}
         {gaId && <GoogleAnalytics gaId={gaId} />}
         {/* Loads once site-wide; individual AdSlot components push ad requests into it */}

@@ -1,13 +1,19 @@
 {
+  "id": "/",
   "name": "NUR Report",
   "short_name": "NURR",
   "description": "Independent news coverage of Nigeria, Africa, and the world. Breaking news, sports, opinion, and analysis.",
-  "start_url": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#FFFFFF",
   "theme_color": "#1B5E20",
+  "categories": ["news", "magazines"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
@@ -32,6 +38,36 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Breaking & Live",
+      "short_name": "Live",
+      "description": "Live coverage and breaking news",
+      "url": "/live?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nigeria",
+      "short_name": "Nigeria",
+      "description": "Nigeria news",
+      "url": "/nigeria?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sports",
+      "short_name": "Sports",
+      "description": "Sports news",
+      "url": "/sports?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Search",
+      "short_name": "Search",
+      "description": "Search NUR Report",
+      "url": "/search?source=pwa-shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

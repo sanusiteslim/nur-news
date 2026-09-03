@@ -12,6 +12,17 @@
   }
 }
 
+/* Only meaningful once viewport-fit=cover is set (see viewport export in
+   layout.tsx) and the app is running standalone/installed on a notched
+   device — env() resolves to 0 everywhere else, so these are safe defaults
+   for the regular browser tab too. */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .article-body p {
   margin-bottom: 1.5rem; /* This creates the Al Jazeera paragraph gap */
 }
