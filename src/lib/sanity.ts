@@ -89,6 +89,17 @@ export const categoryQuery = (category: string) => `
   }
 `
 
+// Same data, but paginated with a properly parametrized $category (rather
+// than string-interpolated) and a $start/$end range — used by the Opinion
+// category page's hero + initial feed, and by the "Show more" API route for
+// subsequent pages.
+export const categoryPageQuery = groq`
+  *[_type == "article" && category == $category && status == "published"] | order(publishedAt desc) [$start...$end] {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`
+
 // Full-text-ish search across headline, excerpt, and body.
 // Pass the term already wildcarded, e.g. client.fetch(searchQuery, { term: `${q}*` })
 // src/lib/sanity.ts
