@@ -140,7 +140,7 @@ export default async function AdvertisePage() {
         </p>
           </section>
       
-        <div className="flex flex-wrap gap-16">
+        <div className="flex flex-wrap gap-6">
             {contactMethods.map((method) => (
               <a
                 key={method.name}
