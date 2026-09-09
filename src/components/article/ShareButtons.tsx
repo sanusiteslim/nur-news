@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Facebook, Twitter, MessageCircle, Link2, Check } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa';
+import { FaXTwitter } from "react-icons/fa6";
+
 
 export default function ShareButtons({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false)
@@ -20,7 +22,7 @@ export default function ShareButtons({ url, title }: { url: string; title: strin
     },
     {
       name: 'X',
-      Icon: Twitter,
+      Icon: FaXTwitter,
       href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
     },
   ]

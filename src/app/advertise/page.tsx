@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
 import { getTotalViews } from '@/lib/analytics'
+// src/app/advertise/page.tsx
+import { Mail, Facebook, MessageCircle } from 'lucide-react';
+import { FaXTwitter } from "react-icons/fa6";
+import { FaWhatsapp } from 'react-icons/fa';
 
 export const metadata: Metadata = {
   title: 'Advertise | NUR Report',
@@ -7,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 // TODO: replace with NUR Report's real advertising contact address before launch.
-const ADVERTISE_EMAIL = 'teslimsanusi123@gmail.com'
+const ADVERTISE_EMAIL = ''
 
 // TODO: fill in with real figures once available. Unlike the article-views
 // count below (which is pulled live from tracked data), unique visitors,
@@ -40,6 +44,43 @@ const AD_FORMATS = [
 ]
 
 export default async function AdvertisePage() {
+
+
+  const contactMethods = [
+    {
+      name: 'Email',
+      icon: Mail,
+      href: 'mailto:nearstudiong@gmail.com',
+      label: 'Send Us an Email',
+      primary: true,
+    },
+
+        {
+      name: 'WhatsApp',
+      icon: FaWhatsapp,
+      href: 'https://wa.me/2349160711708', // Replace with actual number
+      label: 'Chat on WhatsApp',
+      primary: false,
+    },
+
+    {
+      name: 'Twitter/X',
+      icon: FaXTwitter,
+      href: 'https://x.com/nurreporthq',
+      label: 'Follow on X',
+      primary: false,
+    },
+    {
+      name: 'Facebook',
+      icon: Facebook,
+      href: '#',
+      label: 'Like on Facebook',
+      primary: false,
+    },
+    
+
+  ];
+
   const totalViews = await getTotalViews()
 
   return (
