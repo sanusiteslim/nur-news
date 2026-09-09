@@ -138,12 +138,33 @@ export default async function AdvertisePage() {
         <p className="text-text-secondary">
           Interested in advertising or sponsorship? Reach out directly:
         </p>
-        <p className="mt-2">
-          <a href={`mailto:${ADVERTISE_EMAIL}`} className="text-brand-700 font-semibold">
-            {ADVERTISE_EMAIL}
-          </a>
-        </p>
-      </section>
+          </section>
+      
+        <div className="flex flex-wrap gap-16">
+            {contactMethods.map((method) => (
+              <a
+                key={method.name}
+                href={method.href}
+                target={method.href.startsWith('http') ? '_blank' : undefined}
+                rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                className={`
+                  inline-flex items-center gap-2 px-2 py-2 rounded-full
+                  font-medium transition-all duration-200
+                  hover:scale-105 hover:shadow-lg
+                  ${
+                    method.primary
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                  }
+                `}
+              >
+                <method.icon className="w-5 h-5" />
+                <span>{method.label}</span>
+              </a>
+            ))}
+          </div>
+
+      
     </div>
   )
 }
