@@ -1,4 +1,5 @@
 import { client, homepageQuery, breakingNewsQuery } from '@/lib/sanity'
+import { dedupeHomepage } from '@/lib/homepageDedup'
 import HeroSection from '@/components/sections/HeroSection'
 import BreakingBanner from '@/components/sections/BreakingBanner'
 import LiveUpdates from '@/components/sections/LiveUpdates'
@@ -9,10 +10,12 @@ import SectionOpinion from '@/components/sections/SectionOpinion'
 export const revalidate = 5
 
 export default async function HomePage() {
-  const [homepage, breaking] = await Promise.all([
+  const [rawHomepage, breaking] = await Promise.all([
     client.fetch(homepageQuery),
     client.fetch(breakingNewsQuery),
   ])
+
+  const homepage = dedupeHomepage(rawHomepage)
 
   return (
     <div className="min-h-screen">

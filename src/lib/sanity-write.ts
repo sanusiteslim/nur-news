@@ -5,7 +5,7 @@ import { createClient } from 'next-sanity'
 // the `server-only` import above will throw a build error if you try.
 //
 // Unlike the read client in lib/sanity.ts, this one:
-//  - uses a secret write token (SANITY_API_TOKEN), never NEXT_PUBLIC_*
+//  - uses a secret write token (SANITY_TIPS_TOKEN), never NEXT_PUBLIC_*
 //  - has useCdn: false, since writes must hit the live API, not the CDN cache
 //
 // Create the token in manage.sanity.io → API → Tokens, with "Contributor"
@@ -14,9 +14,8 @@ import { createClient } from 'next-sanity'
 // (/api/tips), so it should only be able to touch draft documents, not your
 // published articles. The tips route creates documents with an explicit
 // drafts.* _id specifically so this narrower token works.
-// Set it as SANITY_API_TOKEN in .env.local and in Vercel's environment variables.
-// (This var already existed in .env.example but nothing in the codebase
-// actually used it until now.)
+// Set it as SANITY_TIPS_TOKEN in .env.local and in your hosting provider's
+// environment variables.
 export const writeClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',

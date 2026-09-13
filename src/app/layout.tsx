@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
-import ElectionTicker from '@/components/election/ElectionTicker'
+// ElectionTicker is currently unmounted below — the Osun election it covered
+// has passed. Left in place (component + import) since the same ticker
+// style/pattern is the starting point for a live sports-score ticker later.
+// import ElectionTicker from '@/components/election/ElectionTicker'
 import Footer from '@/components/layout/Footer'
 import InstallAndNotifyPrompt from '@/components/pwa/InstallAndNotifyPrompt'
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
@@ -75,7 +78,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased bg-white text-text-primary">
         {/* Your sticky header, main pages, and footer layout layout */}        
         <Navbar />
-        <ElectionTicker />
         <main className="min-h-screen">{children}</main>
         <Footer />
         <ServiceWorkerRegistration />

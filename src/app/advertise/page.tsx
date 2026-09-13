@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getTotalViews } from '@/lib/analytics'
 // src/app/advertise/page.tsx
-import { Mail, Facebook, MessageCircle } from 'lucide-react';
+import { Mail, Facebook } from 'lucide-react';
 import { FaXTwitter } from "react-icons/fa6";
 import { FaWhatsapp } from 'react-icons/fa';
 
@@ -10,8 +10,9 @@ export const metadata: Metadata = {
   description: 'Advertising, sponsorship, and media kit information for NUR Report.',
 }
 
-// TODO: replace with NUR Report's real advertising contact address before launch.
-const ADVERTISE_EMAIL = ''
+// Real advertising contact address — the single source of truth for both
+// the mailto link below and anywhere else this needs referencing.
+const ADVERTISE_EMAIL = 'nearstudiong@gmail.com'
 
 // TODO: fill in with real figures once available. Unlike the article-views
 // count below (which is pulled live from tracked data), unique visitors,
@@ -46,39 +47,36 @@ const AD_FORMATS = [
 export default async function AdvertisePage() {
 
 
-  const contactMethods = [
+  const directContact = [
     {
       name: 'Email',
       icon: Mail,
-      href: 'mailto:nearstudiong@gmail.com',
+      href: `mailto:${ADVERTISE_EMAIL}`,
       label: 'Send Us an Email',
       primary: true,
     },
-
-        {
+    {
       name: 'WhatsApp',
       icon: FaWhatsapp,
       href: 'https://wa.me/2349160711708', // Replace with actual number
       label: 'Chat on WhatsApp',
       primary: false,
     },
+  ]
 
+  const followLinks = [
     {
       name: 'Twitter/X',
       icon: FaXTwitter,
       href: 'https://x.com/nurreporthq',
-      label: 'Follow on X',
-      primary: false,
+      label: 'X',
     },
     {
       name: 'Facebook',
       icon: Facebook,
-      href: '#',
-      label: 'Like on Facebook',
-      primary: false,
+      href: '#', // TODO: add real Facebook page URL
+      label: 'Facebook',
     },
-    
-
   ];
 
   const totalViews = await getTotalViews()
@@ -135,36 +133,46 @@ export default async function AdvertisePage() {
       {/* Contact */}
       <section>
         <h2 className="text-xl font-bold text-text-primary mb-4">Get in Touch</h2>
-        <p className="text-text-secondary">
+        <p className="text-text-secondary mb-6">
           Interested in advertising or sponsorship? Reach out directly:
         </p>
-          </section>
-      
-        <div className="flex flex-wrap gap-6">
-            {contactMethods.map((method) => (
-              <a
-                key={method.name}
-                href={method.href}
-                target={method.href.startsWith('http') ? '_blank' : undefined}
-                rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className={`
-                  inline-flex items-center gap-2 px-2 py-2 rounded-full
-                  font-medium transition-all duration-200
-                  hover:scale-105 hover:shadow-lg
-                  ${
-                    method.primary
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
-                  }
-                `}
-              >
-                <method.icon className="w-5 h-5" />
-                <span>{method.label}</span>
-              </a>
-            ))}
-          </div>
 
-      
+        <div className="flex flex-wrap gap-4">
+          {directContact.map((method) => (
+            <a
+              key={method.name}
+              href={method.href}
+              target={method.href.startsWith('http') ? '_blank' : undefined}
+              rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className={`
+                inline-flex items-center gap-2 px-5 py-2.5 rounded-full
+                font-medium transition-all duration-200
+                hover:scale-105 hover:shadow-lg
+                ${method.primary ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-900 text-white hover:bg-gray-800'}
+              `}
+            >
+              <method.icon className="w-5 h-5" />
+              <span>{method.label}</span>
+            </a>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100">
+          <span className="text-sm text-text-muted">Or follow NUR Report:</span>
+          {followLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              target={link.href.startsWith('http') ? '_blank' : undefined}
+              rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              aria-label={link.name}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-text-secondary hover:bg-gray-200 hover:text-text-primary transition-colors"
+            >
+              <link.icon className="w-4 h-4" />
+            </a>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
