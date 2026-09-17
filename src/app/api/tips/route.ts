@@ -2,10 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { writeClient } from '@/lib/sanity-write'
 
+// This route writes to Sanity, so it must run on the Node runtime (not Edge)
+// and must never be statically optimised.
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const MAX_TIP_LENGTH = 2000
 const MIN_FORM_FILL_MS = 3000 // reject submissions faster than a human could type
 
 export async function POST(request: NextRequest) {
+  // Fail loudly and clearly if the write token was never configured. Without
+  // this guard, Sanity rejects the write with a generic 401 and the user just
+  // sees "something went wrong" with no clue that an env var is missing.
+  if (!process.env.SANITY_TIPS_TOKEN) {
+    console.error(
+      '[api/tips] SANITY_TIPS_TOKEN is not set. Create a Contributor token at ' +
+        'manage.sanity.io -> API -> Tokens and add it to your environment variables.'
+    )
+    return NextResponse.json(
+      { error: 'Tip submissions are temporarily unavailable. Please try again later.' },
+      { status: 503 }
+    )
+  }
+
   let body: any
   try {
     body = await request.json()
@@ -30,7 +49,10 @@ export async function POST(request: NextRequest) {
 
   // Basic bot-speed check: reject if the form was "submitted" implausibly fast
   if (typeof formLoadedAt === 'number' && Date.now() - formLoadedAt < MIN_FORM_FILL_MS) {
-    return NextResponse.json({ error: 'Please try again.' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'That was a bit quick — please take a moment and try again.' },
+      { status: 400 }
+    )
   }
 
   if (typeof tipText !== 'string' || !tipText.trim()) {
@@ -38,7 +60,10 @@ export async function POST(request: NextRequest) {
   }
 
   if (tipText.length > MAX_TIP_LENGTH) {
-    return NextResponse.json({ error: `Tip must be under ${MAX_TIP_LENGTH} characters.` }, { status: 400 })
+    return NextResponse.json(
+      { error: `Tip must be under ${MAX_TIP_LENGTH} characters.` },
+      { status: 400 }
+    )
   }
 
   try {
@@ -59,8 +84,22 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ ok: true })
-  } catch (error) {
-    console.error('Error creating tip submission:', error)
-    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
+  } catch (error: any) {
+    // Surface the real reason in server logs — Sanity's errors are specific
+    // (401 = bad/absent token, 403 = token lacks draft write permission)
+    // and knowing which one you hit saves a lot of guessing.
+    console.error('[api/tips] Sanity write failed:', error?.statusCode, error?.message || error)
+
+    if (error?.statusCode === 401 || error?.statusCode === 403) {
+      return NextResponse.json(
+        { error: 'Tip submissions are temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Something went wrong. Please try again.' },
+      { status: 500 }
+    )
   }
 }

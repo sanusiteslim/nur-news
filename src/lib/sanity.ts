@@ -180,3 +180,70 @@ export const latestVideoQuery = groq`
     }
   }
 `
+// ---------------------------------------------------------------------------
+// Author profiles  (/author/[slug])
+// ---------------------------------------------------------------------------
+
+/** One author's public profile. */
+export const authorQuery = groq`
+  *[_type == "author" && slug.current == $slug][0] {
+    name, slug, role, state, bio, photo, twitter, email
+  }
+`
+
+/** Every published article by a given author, newest first. */
+export const authorArticlesQuery = groq`
+  *[_type == "article" && status == "published" && author->slug.current == $slug]
+    | order(publishedAt desc) [0...50] {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`
+
+/** All author slugs — used to statically generate author pages. */
+export const allAuthorSlugsQuery = groq`
+  *[_type == "author" && defined(slug.current)].slug.current
+`
+
+/** Authors who have at least one published article, for the /authors index. */
+export const activeAuthorsQuery = groq`
+  *[_type == "author" && defined(slug.current) && count(*[_type == "article" && status == "published" && author._ref == ^._id]) > 0]
+    | order(name asc) {
+    name, slug, role, photo, bio,
+    "articleCount": count(*[_type == "article" && status == "published" && author._ref == ^._id])
+  }
+`
+
+// ---------------------------------------------------------------------------
+// Tag archives  (/tag/[tag])
+// ---------------------------------------------------------------------------
+
+/** Every published article carrying a given tag, newest first. */
+// Two deliberate choices here:
+//  1. `in` (exact array membership), not `match`. `match` does tokenized text
+//     matching, so /tag/war would wrongly pull in "us-israel-iran-war".
+//  2. The param is named $topic, not $tag. next-sanity's typed groq parser
+//     can't tell the param `$tag` apart from the field `tags` — that prefix
+//     collision breaks its tokenizer and makes client.fetch(q, { tag }) a
+//     type error. Any non-colliding name works.
+export const tagArticlesQuery = groq`
+  *[_type == "article" && status == "published" && $topic in tags]
+    | order(publishedAt desc) [0...50] {
+    headline, slug, excerpt, featuredImage, category, publishedAt, tags,
+    "author": author->{name, photo}
+  }
+`
+
+/**
+ * Every distinct tag in use across published articles.
+ * `array::unique` flattens the per-article tag arrays into one deduplicated
+ * list, which is what the /tag index renders.
+ */
+export const allTagsQuery = groq`
+  array::unique(*[_type == "article" && status == "published" && defined(tags)].tags[])
+`
+
+/** How many published articles carry a given tag. */
+export const tagCountQuery = groq`
+  count(*[_type == "article" && status == "published" && $topic in tags])
+`

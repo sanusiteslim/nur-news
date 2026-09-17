@@ -1,16 +1,12 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { CATEGORIES } from '@/lib/taxonomy'
 
-const categories = [
-  { label: 'Not sure', value: 'unsure' },
-  { label: 'Nigeria', value: 'nigeria' },
-  { label: 'Africa', value: 'africa' },
-  { label: 'World', value: 'world' },
-  { label: 'Sports', value: 'sports' },
-  { label: 'Opinion', value: 'opinion' },
-  { label: 'Business', value: 'business' },
-]
+// Sourced from the shared taxonomy so this list can't drift out of sync with
+// the rest of the site, plus an explicit "Not sure" escape hatch — most
+// tippers genuinely won't know which desk their tip belongs to.
+const categoryOptions = [{ value: 'unsure', label: 'Not sure' }, ...CATEGORIES]
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -33,8 +29,9 @@ export default function TipPage() {
     setStatus('submitting')
     setErrorMessage('')
 
+    let res: Response
     try {
-      const res = await fetch('/api/tips', {
+      res = await fetch('/api/tips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -47,25 +44,42 @@ export default function TipPage() {
           formLoadedAt: formLoadedAt.current,
         }),
       })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setStatus('error')
-        setErrorMessage(data?.error || 'Something went wrong. Please try again.')
-        return
-      }
-
-      setStatus('success')
-      setTipText('')
-      setLocation('')
-      setSubmitterName('')
-      setSubmitterContact('')
-      setCategory('unsure')
     } catch {
+      // Only a genuine transport failure lands here — this is the one case
+      // where "check your connection" is actually the right advice.
       setStatus('error')
-      setErrorMessage('Network error. Please check your connection and try again.')
+      setErrorMessage('Could not reach the server. Please check your connection and try again.')
+      return
     }
+
+    // Parse defensively. The previous version called res.json() before
+    // checking res.ok, so any non-JSON response (a platform 500 HTML page, a
+    // 404 from a missing route, a gateway timeout) threw a SyntaxError that
+    // got reported to the reader as a "network error" — which sent everyone
+    // chasing their wifi instead of the actual server-side problem.
+    let data: any = null
+    try {
+      const text = await res.text()
+      data = text ? JSON.parse(text) : null
+    } catch {
+      data = null
+    }
+
+    if (!res.ok) {
+      setStatus('error')
+      setErrorMessage(
+        data?.error ||
+          `Submission failed (error ${res.status}). Please try again in a moment.`
+      )
+      return
+    }
+
+    setStatus('success')
+    setTipText('')
+    setLocation('')
+    setSubmitterName('')
+    setSubmitterContact('')
+    setCategory('unsure')
   }
 
   if (status === 'success') {
@@ -73,7 +87,8 @@ export default function TipPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-3xl font-bold text-brand-800 mb-4">Thanks for the tip</h1>
         <p className="text-text-secondary text-lg mb-8">
-          Our editorial team will review it. If you left contact details, we may reach out to verify before running anything with it.
+          Our editorial team will review it. If you left contact details, we may reach out to
+          verify before running anything with it.
         </p>
         <button
           onClick={() => setStatus('idle')}
@@ -89,7 +104,8 @@ export default function TipPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-2">Send Us a Tip</h1>
       <p className="text-text-secondary mb-8">
-        Seen or heard something worth reporting? Tell us. You can stay anonymous — name and contact info are optional.
+        Seen or heard something worth reporting? Tell us. You can stay anonymous — name and
+        contact info are optional.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -109,7 +125,7 @@ export default function TipPage() {
 
         <div>
           <label htmlFor="tipText" className="block font-semibold text-text-primary mb-2">
-            What's the tip? <span className="text-brand-700">*</span>
+            What&apos;s the tip? <span className="text-brand-700">*</span>
           </label>
           <textarea
             id="tipText"
@@ -134,8 +150,10 @@ export default function TipPage() {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-4 py-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-700"
           >
-            {categories.map((c) => (
-              <option key={c.value} value={c.value}>{c.label}</option>
+            {categoryOptions.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
             ))}
           </select>
         </div>
@@ -183,7 +201,9 @@ export default function TipPage() {
         </div>
 
         {status === 'error' && (
-          <p className="text-red-600 text-sm">{errorMessage}</p>
+          <p className="text-red-600 text-sm" role="alert">
+            {errorMessage}
+          </p>
         )}
 
         <button

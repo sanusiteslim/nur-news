@@ -1,5 +1,6 @@
 import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { formatPublishedDate } from '@/lib/formatDate'
 import { urlForImage } from '@/lib/image'
@@ -119,7 +120,18 @@ export default async function ArticlePage({ params }: { params: { category: stri
             <Image src={urlForImage(article.author.photo).width(48).height(48).url()} alt={article.author.name} width={48} height={48} className="rounded-full" />
           )}
           <div>
-            <p className="font-semibold text-text-primary">{article.author?.name}</p>
+            <p className="font-semibold text-text-primary">
+              {article.author?.slug?.current ? (
+                <Link
+                  href={`/author/${article.author.slug.current}`}
+                  className="hover:text-brand-700 transition-colors"
+                >
+                  {article.author.name}
+                </Link>
+              ) : (
+                article.author?.name
+              )}
+            </p>
             <p className="text-sm text-text-muted">
               {formatPublishedDate(article.publishedAt)}
               {article.author?.role && ` · ${article.author.role}`}
@@ -228,6 +240,27 @@ export default async function ArticlePage({ params }: { params: { category: stri
         />
       </div>
 
+      {/* Topic pills — each links to its tag archive, giving readers a route
+          into the wider story thread instead of a dead end at the article's end. */}
+      {article.tags && article.tags.length > 0 && (
+        <div className="mt-10 pt-6 border-t border-gray-200">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-3">
+            Topics
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {article.tags.map((tag: string) => (
+              <Link
+                key={tag}
+                href={`/tag/${tag}`}
+                className="px-3 py-1.5 bg-brand-50 text-brand-800 text-sm rounded-full hover:bg-brand-100 transition-colors"
+              >
+                {formatTag(tag)}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Opinion disclaimer & author bio — placed after article body per Al Jazeera layout */}
       {article.category === 'opinion' && (
         <div className="mt-10">
@@ -250,7 +283,16 @@ export default async function ArticlePage({ params }: { params: { category: stri
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-text-primary text-lg">
-                  {article.author.name}
+                  {article.author.slug?.current ? (
+                    <Link
+                      href={`/author/${article.author.slug.current}`}
+                      className="hover:text-brand-700 transition-colors"
+                    >
+                      {article.author.name}
+                    </Link>
+                  ) : (
+                    article.author.name
+                  )}
                 </p>
                 <p className="text-base text-text-secondary leading-relaxed mt-1">
                   {article.author.bio || article.author.role}

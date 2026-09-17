@@ -1,5 +1,5 @@
 import 'server-only'
-import { redis } from './redis'
+import { getRedis } from './redis'
 
 const VIEWS_ZSET_KEY = 'article:views'
 const TOTAL_VIEWS_KEY = 'site:total-views'
@@ -12,9 +12,13 @@ const TOTAL_VIEWS_KEY = 'site:total-views'
  *
  * Analytics should never break the reading experience, so failures here are
  * swallowed rather than thrown — a Redis hiccup shouldn't 500 an article page.
+ * If Redis isn't configured at all, this is a silent no-op.
  */
 export async function trackArticleView(slug: string): Promise<void> {
   if (!slug) return
+  const redis = getRedis()
+  if (!redis) return
+
   try {
     await Promise.all([
       redis.zincrby(VIEWS_ZSET_KEY, 1, slug),
@@ -32,6 +36,9 @@ export interface MostViewedEntry {
 
 /** Top N most-viewed article slugs, most-viewed first. */
 export async function getMostViewedSlugs(limit = 5): Promise<MostViewedEntry[]> {
+  const redis = getRedis()
+  if (!redis) return []
+
   try {
     const raw = await redis.zrange<(string | number)[]>(VIEWS_ZSET_KEY, 0, limit - 1, {
       rev: true,
@@ -53,6 +60,9 @@ export async function getMostViewedSlugs(limit = 5): Promise<MostViewedEntry[]> 
  *  honest, real-data stat on the Advertise page — deliberately NOT presented
  *  as "unique monthly visitors" since that's not what this measures. */
 export async function getTotalViews(): Promise<number> {
+  const redis = getRedis()
+  if (!redis) return 0
+
   try {
     const total = await redis.get<number>(TOTAL_VIEWS_KEY)
     return total ?? 0
