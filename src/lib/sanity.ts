@@ -75,7 +75,19 @@ export const breakingNewsQuery = `
 export const articleQuery = `
   *[_type == "article" && slug.current == $slug][0] {
     _id, headline, slug, excerpt, category, tags,
-    featuredImage, body, isBreaking, hasLiveUpdates, liveUpdates,
+    featuredImage, isBreaking, hasLiveUpdates, liveUpdates,
+    // markDefs must be dereferenced here, or the internalLink annotation
+    // arrives as a bare _ref and the renderer has no slug to build a URL from.
+    body[]{
+      ...,
+      markDefs[]{
+        ...,
+        _type == "internalLink" => {
+          ...,
+          "reference": @.reference->{ "slug": slug, category }
+        }
+      }
+    },
     videoUrl, videoDuration,
     publishedAt,
     "author": author->{name, photo, bio, slug, role}
