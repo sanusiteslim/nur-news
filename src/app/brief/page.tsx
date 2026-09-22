@@ -1,13 +1,7 @@
 import Link from 'next/link'
-import { client } from '@/lib/sanity'
-import { latestBriefsQuery } from '@/lib/sanity'
+import { client, latestBriefsQuery } from '@/lib/sanity'
 
 export const revalidate = 300
-
-export const metadata = {
-  title: 'NUR Report Brief',
-  description: 'The most important stories from NUR Report.',
-}
 
 export default async function BriefIndexPage() {
   const briefs = await client.fetch(latestBriefsQuery)
@@ -19,9 +13,7 @@ export default async function BriefIndexPage() {
           NUR Report
         </p>
 
-        <h1 className="mt-2 text-4xl font-bold">
-          The Brief
-        </h1>
+        <h1 className="mt-2 text-4xl font-bold">The Brief</h1>
 
         <p className="mt-3 max-w-2xl text-gray-600">
           The most important stories, developments and updates from NUR Report,
@@ -50,14 +42,10 @@ export default async function BriefIndexPage() {
                 })}
               </p>
 
-              <h2 className="mt-2 text-2xl font-bold">
-                {brief.title}
-              </h2>
+              <h2 className="mt-2 text-2xl font-bold">{brief.title}</h2>
 
               {brief.intro && (
-                <p className="mt-3 line-clamp-3 text-gray-600">
-                  {brief.intro}
-                </p>
+                <p className="mt-3 line-clamp-3 text-gray-600">{brief.intro}</p>
               )}
             </Link>
           ))}

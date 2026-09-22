@@ -1,6 +1,6 @@
 import article from './article'
 import author from './author'
-import {brief} from './brief'
+import { brief } from './brief'
 import comment from './comment'
 import election from './election'
 import homepage from './homepage'

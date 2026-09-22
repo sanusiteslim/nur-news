@@ -4,6 +4,10 @@ import { sendTelegramMessage } from '@/lib/telegram'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+type TelegramMessage = {
+  message_id?: number
+}
+
 export async function POST(req: NextRequest) {
   const adminToken = process.env.ADMIN_TOKEN
 
@@ -24,9 +28,22 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json()
+    const body: unknown = await req.json()
 
-    const text = String(body.text || '').trim()
+    if (
+      typeof body !== 'object' ||
+      body === null ||
+      !('text' in body)
+    ) {
+      return NextResponse.json(
+        { error: 'Message text is required' },
+        { status: 400 }
+      )
+    }
+
+    const text = String(
+      (body as { text?: unknown }).text ?? ''
+    ).trim()
 
     if (!text) {
       return NextResponse.json(
@@ -37,16 +54,19 @@ export async function POST(req: NextRequest) {
 
     if (text.length > 4096) {
       return NextResponse.json(
-        { error: 'Telegram messages must be 4096 characters or less' },
+        {
+          error:
+            'Telegram messages must be 4096 characters or less',
+        },
         { status: 400 }
       )
     }
 
-    const result = await sendTelegramMessage(text)
+    const result = await sendTelegramMessage(text) as TelegramMessage
 
     return NextResponse.json({
       ok: true,
-      messageId: (result as any)?.message_id ?? null,
+      messageId: result?.message_id ?? null,
     })
   } catch (error) {
     console.error('Telegram publish failed:', error)
@@ -56,7 +76,7 @@ export async function POST(req: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : 'Telegram publish failed',
+            : 'Telegram publishing failed',
       },
       { status: 500 }
     )

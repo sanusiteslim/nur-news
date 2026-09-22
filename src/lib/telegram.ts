@@ -1,4 +1,5 @@
 import 'server-only'
+import {getRedis } from '@/lib/redis'
 
 const TELEGRAM_API = 'https://api.telegram.org'
 

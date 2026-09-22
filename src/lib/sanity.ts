@@ -289,16 +289,21 @@ export const briefBySlugQuery = groq`
     closing,
 
     "leadStory": leadStory->{
+      _id,
       headline,
       slug,
       excerpt,
       featuredImage,
       category,
       publishedAt,
-      "author": author->{name, photo}
+      "author": author->{
+        name,
+        photo
+      }
     },
 
     "nigeria": nigeria[]->{
+      _id,
       headline,
       slug,
       excerpt,
@@ -308,6 +313,7 @@ export const briefBySlugQuery = groq`
     },
 
     "business": business[]->{
+      _id,
       headline,
       slug,
       excerpt,
@@ -317,6 +323,7 @@ export const briefBySlugQuery = groq`
     },
 
     "tech": tech[]->{
+      _id,
       headline,
       slug,
       excerpt,
@@ -326,6 +333,7 @@ export const briefBySlugQuery = groq`
     },
 
     "sports": sports[]->{
+      _id,
       headline,
       slug,
       excerpt,
@@ -335,6 +343,7 @@ export const briefBySlugQuery = groq`
     },
 
     "world": world[]->{
+      _id,
       headline,
       slug,
       excerpt,
