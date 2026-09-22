@@ -12,6 +12,7 @@ import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistratio
 import { getSiteUrl } from '@/lib/site'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
+import UpdateToast from '@/components/pwa/UpdateToast'
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })

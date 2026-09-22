@@ -259,3 +259,88 @@ export const allTagsQuery = groq`
 export const tagCountQuery = groq`
   count(*[_type == "article" && status == "published" && $topic in tags])
 `
+export const latestBriefsQuery = groq`
+  *[
+    _type == "brief" &&
+    status == "published"
+  ]
+  | order(date desc)[0...30] {
+    _id,
+    title,
+    slug,
+    date,
+    edition,
+    intro
+  }
+`
+
+export const briefBySlugQuery = groq`
+  *[
+    _type == "brief" &&
+    slug.current == $slug &&
+    status == "published"
+  ][0] {
+    _id,
+    title,
+    slug,
+    date,
+    edition,
+    intro,
+    closing,
+
+    "leadStory": leadStory->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt,
+      "author": author->{name, photo}
+    },
+
+    "nigeria": nigeria[]->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt
+    },
+
+    "business": business[]->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt
+    },
+
+    "tech": tech[]->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt
+    },
+
+    "sports": sports[]->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt
+    },
+
+    "world": world[]->{
+      headline,
+      slug,
+      excerpt,
+      featuredImage,
+      category,
+      publishedAt
+    }
+  }
+`
