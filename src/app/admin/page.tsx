@@ -18,6 +18,11 @@ const items = [
     description: 'Prepare WhatsApp posts and publish to Telegram.',
     href: '/admin/distribution',
   },
+  {
+    title: 'Newsletter',
+    description: 'Send the Brief by email to confirmed subscribers.',
+    href: '/admin/newsletter',
+  },
 ]
 
 export default function AdminDashboard() {
@@ -37,7 +42,7 @@ export default function AdminDashboard() {
         </p>
       </header>
 
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
         {items.map((item) => (
           <Link
             key={item.href}
