@@ -1,10 +1,9 @@
 User-agent: *
 Allow: /
-
-User-agent: Mediapartners-Google
-Allow: /
-
-User-agent: Google-Display-Ads-Bot
-Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /search?
+Disallow: /newsletter/
 
 Sitemap: https://www.nurreport.name.ng/sitemap.xml
+Sitemap: https://www.nurreport.name.ng/news-sitemap.xml

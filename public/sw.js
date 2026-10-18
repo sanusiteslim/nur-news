@@ -3,9 +3,13 @@
 // Bump CACHE_VERSION whenever the caching strategy or precache list changes.
 // Old versioned caches are swept on activate, so this is the one thing you
 // need to touch to force every installed client onto fresh caches.
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const STATIC_CACHE = `nur-static-${CACHE_VERSION}`
 const PAGES_CACHE = `nur-pages-${CACHE_VERSION}`
+const IMAGE_CACHE = `nur-images-${CACHE_VERSION}`
+// Caps keep the cache from growing without limit on readers' phones.
+const MAX_PAGES = 40
+const MAX_IMAGES = 120
 const OFFLINE_URL = '/offline'
 
 const PRECACHE_URLS = [OFFLINE_URL, '/icon-192.png', '/icon-512.png', '/favicon.ico']
@@ -19,10 +23,9 @@ self.addEventListener('install', (event) => {
     caches
       .open(STATIC_CACHE)
       .then((cache) => cache.addAll(PRECACHE_URLS))
-      // Don't wait for the old tab to close — new logic takes over as soon
-      // as it's ready. Paired with the "update available" toast in
-      // ServiceWorkerRegistration.tsx, which asks first before this fires.
-      .then(() => self.skipWaiting())
+    // No skipWaiting() here: a new worker waits until the reader taps
+    // "Refresh" on the update toast (SKIP_WAITING message below). Calling it
+    // on install made pages reload under readers mid-article.
   )
 })
 
@@ -33,7 +36,7 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith('nur-') && key !== STATIC_CACHE && key !== PAGES_CACHE)
+            .filter((key) => key.startsWith('nur-') && ![STATIC_CACHE, PAGES_CACHE, IMAGE_CACHE].includes(key))
             .map((key) => caches.delete(key))
         )
       )
@@ -64,6 +67,9 @@ self.addEventListener('fetch', (event) => {
   // except Sanity's asset CDN, which we're happy to cache for offline reading.
   if (url.origin !== self.location.origin && url.hostname !== 'cdn.sanity.io') return
 
+  // Admin screens and API responses must always be live.
+  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/')) return
+
   // Next.js build assets are content-hashed — safe to cache forever.
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(cacheFirst(request, STATIC_CACHE))
@@ -74,7 +80,7 @@ self.addEventListener('fetch', (event) => {
   // images) and the Sanity CDN directly — show the cached version instantly
   // if we have one, then refresh it in the background.
   if (url.pathname.startsWith('/_next/image') || url.hostname === 'cdn.sanity.io') {
-    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE))
+    event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE, MAX_IMAGES))
     return
   }
 
@@ -107,12 +113,23 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
-async function staleWhileRevalidate(request, cacheName) {
+// Deletes the oldest entries once a cache holds more than `max` items.
+async function trimCache(cacheName, max) {
+  const cache = await caches.open(cacheName)
+  const keys = await cache.keys()
+  if (keys.length <= max) return
+  await Promise.all(keys.slice(0, keys.length - max).map((key) => cache.delete(key)))
+}
+
+async function staleWhileRevalidate(request, cacheName, max) {
   const cache = await caches.open(cacheName)
   const cached = await cache.match(request)
   const network = fetch(request)
     .then((response) => {
-      if (response.ok) cache.put(request, response.clone())
+      // Opaque (no-cors) responses report ok=false but are still cacheable.
+      if (response.ok || response.type === 'opaque') {
+        cache.put(request, response.clone()).then(() => max && trimCache(cacheName, max))
+      }
       return response
     })
     .catch(() => cached)
@@ -123,7 +140,9 @@ async function networkFirstNavigation(request) {
   const pagesCache = await caches.open(PAGES_CACHE)
   try {
     const response = await fetch(request)
-    if (response.ok) pagesCache.put(request, response.clone())
+    if (response.ok) {
+      pagesCache.put(request, response.clone()).then(() => trimCache(PAGES_CACHE, MAX_PAGES))
+    }
     return response
   } catch {
     return (await pagesCache.match(request)) || (await caches.match(OFFLINE_URL)) || Response.error()

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { writeClient } from '@/lib/sanity-write'
+import { rateLimit } from '@/lib/newsletter'
+import { clientIp } from '@/lib/adminAuth'
 
 // This route writes to Sanity, so it must run on the Node runtime (not Edge)
 // and must never be statically optimised.
@@ -9,6 +11,7 @@ export const dynamic = 'force-dynamic'
 
 const MAX_TIP_LENGTH = 2000
 const MIN_FORM_FILL_MS = 3000 // reject submissions faster than a human could type
+const TIP_CATEGORIES = ['nigeria', 'africa', 'world', 'sports', 'opinion', 'business', 'unsure']
 
 export async function POST(request: NextRequest) {
   // Fail loudly and clearly if the write token was never configured. Without
@@ -22,6 +25,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'Tip submissions are temporarily unavailable. Please try again later.' },
       { status: 503 }
+    )
+  }
+
+  // 5 tips per hour per IP keeps Sanity's free document quota safe from scripts.
+  if (!(await rateLimit(`tips:${clientIp(request)}`, 5, 3600))) {
+    return NextResponse.json(
+      { error: 'Too many tips from your connection. Please try again later.' },
+      { status: 429 }
     )
   }
 
@@ -48,7 +59,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Basic bot-speed check: reject if the form was "submitted" implausibly fast
-  if (typeof formLoadedAt === 'number' && Date.now() - formLoadedAt < MIN_FORM_FILL_MS) {
+  if (typeof formLoadedAt !== 'number' || Date.now() - formLoadedAt < MIN_FORM_FILL_MS) {
     return NextResponse.json(
       { error: 'That was a bit quick — please take a moment and try again.' },
       { status: 400 }
@@ -74,7 +85,7 @@ export async function POST(request: NextRequest) {
       _id: `drafts.tip-${randomUUID()}`,
       _type: 'tipSubmission',
       tipText: tipText.trim(),
-      category: typeof category === 'string' ? category : 'unsure',
+      category: typeof category === 'string' && TIP_CATEGORIES.includes(category) ? category : 'unsure',
       location: typeof location === 'string' ? location.trim().slice(0, 200) : undefined,
       submitterName: typeof submitterName === 'string' ? submitterName.trim().slice(0, 200) : undefined,
       submitterContact: typeof submitterContact === 'string' ? submitterContact.trim().slice(0, 200) : undefined,

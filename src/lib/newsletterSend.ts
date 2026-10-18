@@ -3,7 +3,7 @@ import { createClient } from 'next-sanity'
 import { getRedis } from './redis'
 import { briefBySlugQuery } from './sanity'
 import { sendBatch, sendEmail, isResendConfigured } from './resend'
-import { getActiveEmails, oneClickUnsubscribeUrl, unsubscribeUrl } from './newsletter'
+import { getActiveEmails, oneClickUnsubscribeUrl, preferencesUrl, unsubscribeUrl } from './newsletter'
 import { briefEmail, type BriefForEmail } from './newsletterEmail'
 
 // Fresh (non-CDN) reads: an editor who just hit Publish must not mail yesterday's copy.
@@ -39,7 +39,7 @@ export async function sendBrief(
 
   // ---- test send: one email to one address, never recorded as "sent" ----
   if (opts.testTo) {
-    const mail = briefEmail(brief, unsubscribeUrl(opts.testTo))
+    const mail = briefEmail(brief, unsubscribeUrl(opts.testTo), preferencesUrl(opts.testTo))
     await sendEmail({ to: opts.testTo, ...mail, subject: `[TEST] ${mail.subject}` })
     return { ok: true, mode: 'test', sent: 1 }
   }
@@ -49,15 +49,18 @@ export async function sendBrief(
     return { ok: false, status: 409, error: 'This brief was already sent. Pass force to send again.' }
   }
 
-  const emails = await getActiveEmails()
-  if (emails.length === 0) return { ok: false, status: 400, error: 'No confirmed subscribers' }
+  // Each issue goes only to readers subscribed to its list (older issues
+  // without a list are the daily Brief).
+  const list = brief.list === 'weekly' ? 'weekly' : 'daily'
+  const emails = await getActiveEmails(list)
+  if (emails.length === 0) return { ok: false, status: 400, error: `No confirmed subscribers on the ${list} list` }
 
   let sent = 0
   const CHUNK = 100 // Resend batch maximum
   for (let i = 0; i < emails.length; i += CHUNK) {
     const chunk = emails.slice(i, i + CHUNK)
     const payloads = chunk.map((to) => {
-      const mail = briefEmail(brief, unsubscribeUrl(to))
+      const mail = briefEmail(brief, unsubscribeUrl(to), preferencesUrl(to))
       return {
         to,
         ...mail,

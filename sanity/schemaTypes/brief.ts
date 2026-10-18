@@ -33,6 +33,21 @@ export const brief = defineType({
     }),
 
     defineField({
+      name: 'list',
+      title: 'Newsletter',
+      type: 'string',
+      description: 'Who receives this issue. Daily goes to Daily Brief subscribers; Weekly to Weekend Digest subscribers.',
+      options: {
+        list: [
+          { title: 'Daily Brief', value: 'daily' },
+          { title: 'Weekend Digest', value: 'weekly' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'daily',
+    }),
+
+    defineField({
       name: 'edition',
       title: 'Edition',
       type: 'string',
@@ -149,12 +164,13 @@ export const brief = defineType({
       date: 'date',
       edition: 'edition',
       status: 'status',
+      list: 'list',
     },
 
-    prepare({ title, date, edition, status }) {
+    prepare({ title, date, edition, status, list }) {
       return {
         title: `${title} — ${date || ''}`,
-        subtitle: `${edition || 'evening'} · ${status || 'draft'}`,
+        subtitle: `${list === 'weekly' ? 'Weekend' : edition || 'evening'} · ${status || 'draft'}`,
       }
     },
   },

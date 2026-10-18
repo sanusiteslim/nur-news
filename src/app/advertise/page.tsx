@@ -6,7 +6,7 @@ import { FaXTwitter } from "react-icons/fa6";
 import { FaWhatsapp } from 'react-icons/fa';
 
 export const metadata: Metadata = {
-  title: 'Advertise | NUR Report',
+  title: 'Advertise',
   description: 'Advertising, sponsorship, and media kit information for NUR Report.',
 }
 

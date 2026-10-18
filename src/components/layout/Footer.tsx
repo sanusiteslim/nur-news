@@ -23,9 +23,14 @@ const footerLinks = {
     { label: 'Careers', href: '/careers' },
     { label: 'Contact', href: '/contact' },
     { label: 'Send Us a Tip', href: '/tip' },
+    { label: 'Newsletters', href: '/newsletters' },
+    { label: 'Live', href: '/live' },
+    { label: 'Topics', href: '/topics' },
     { label: 'Advertise', href: '/advertise' },
   ],
   'Legal': [
+    { label: 'Editorial Standards', href: '/editorial-standards' },
+    { label: 'Corrections', href: '/corrections' },
     { label: 'Terms of Service', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Cookie Policy', href: '/cookies' },
@@ -37,7 +42,7 @@ const footerLinks = {
 // accounts. Swap the '#' hrefs for the actual profiles.
 const socialLinks = [
   {label: 'whatsapp', href: 'https://whatsapp.com/channel/0029VbDVR0X1NCrdmavdcg41', icon: FaWhatsapp},
-  { label: 'Facebook', href: 'https://www.facebook.com/nurreporthq', icon: Facebook },
+  { label: 'Facebook', href: 'https://www.facebook.com/nurreport', icon: Facebook },
   { label: 'X (Twitter)', href: 'https://x.com/nurreporthq', icon: FaXTwitter },
   { label: 'Instagram', href: 'https://www.instagram.com/nurreporthq', icon: Instagram },
   { label: 'YouTube', href: 'https://www.youtube.com/@nurrhq', icon: Youtube },

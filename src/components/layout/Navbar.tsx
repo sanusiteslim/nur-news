@@ -22,7 +22,7 @@ const moreCategories = [
   { label: 'Environment', href: '/environment' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ live = null }: { live?: { href: string; title: string } | null }) {
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -75,10 +75,16 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link href="/live" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-brand-700 text-white text-sm font-medium rounded-full hover:bg-brand-800 transition-colors">
-              <Radio className="w-4 h-4" />
-              LIVE
-            </Link>
+            {live && (
+              <Link
+                href={live.href}
+                title={live.title}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-700 text-white text-sm font-medium rounded-full hover:bg-brand-800 transition-colors"
+              >
+                <Radio className="w-4 h-4" />
+                LIVE
+              </Link>
+            )}
             <button onClick={() => setSearchOpen(true)} className="p-2 text-text-primary hover:text-brand-700 transition-colors">
               <Search className="w-5 h-5" />
             </button>
@@ -126,6 +132,16 @@ export default function Navbar() {
               </button>
             </div>
             <nav className="space-y-1">
+              {live && (
+                <Link
+                  href={live.href}
+                  className="flex items-center gap-2 px-4 py-3 text-lg font-semibold text-brand-700 hover:bg-gray-50 rounded-lg"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Radio className="w-5 h-5" />
+                  Live: {live.title}
+                </Link>
+              )}
               {[...categories, ...moreCategories].map((cat) => (
                 <Link key={cat.href} href={cat.href} className="block px-4 py-3 text-lg font-medium text-text-primary hover:bg-gray-50 rounded-lg" onClick={() => setMobileOpen(false)}>
                   {cat.label}

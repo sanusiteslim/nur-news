@@ -1,7 +1,8 @@
 import 'server-only'
 import fs from 'fs/promises'
 import path from 'path'
-import { Redis } from '@upstash/redis'
+import type { Redis } from '@upstash/redis'
+import { getRedis } from '../redis'
 import type { PushSubscriptionRecord } from './types'
 
 export interface PushSubscriberStore {
@@ -54,7 +55,7 @@ class FileSubscriberStore implements PushSubscriberStore {
 // Picked automatically whenever UPSTASH_REDIS_REST_URL / _TOKEN are set
 // (Vercel env vars, or the Vercel↔Upstash marketplace integration).
 class UpstashSubscriberStore implements PushSubscriberStore {
-  private redis = Redis.fromEnv()
+  constructor(private redis: Redis) {}
   private KEY = 'push:subscribers'
 
   async add(sub: PushSubscriptionRecord) {
@@ -76,8 +77,9 @@ let cachedStore: PushSubscriberStore | null = null
 export function getSubscriberStore(): PushSubscriberStore {
   if (cachedStore) return cachedStore
 
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    cachedStore = new UpstashSubscriberStore()
+  const redis = getRedis()
+  if (redis) {
+    cachedStore = new UpstashSubscriberStore(redis)
   } else {
     cachedStore = new FileSubscriberStore()
   }

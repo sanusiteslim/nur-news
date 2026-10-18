@@ -1,5 +1,7 @@
 import { client, videoArticlesQuery, latestVideoQuery } from '@/lib/sanity'
-import { notFound } from 'next/navigation'
+import { getEmbedUrl } from '@/lib/video'
+import { getSiteUrl } from '@/lib/site'
+import { jsonLdString } from '@/lib/jsonld'
 import VideoCard from '@/app/video/VideoCard'
 import { getVideoThumbnail } from '@/lib/video'
 import { urlForImage } from '@/lib/image'
@@ -8,11 +10,12 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Video | NUR Report',
+  title: 'Video',
   description: 'Watch the latest news videos, interviews, and reports from NUR Report.',
+  alternates: { canonical: '/video' },
 }
 
-export const revalidate = 10
+export const revalidate = 300
 
 export default async function VideoPage() {
   const [latest, videos] = await Promise.all([
@@ -31,8 +34,39 @@ export default async function VideoPage() {
 
   const rest = latest ? videos.filter((v: any) => v._id !== latest._id) : videos
 
+  // VideoObject markup makes these eligible for Google's video results.
+  const site = getSiteUrl()
+  const videoJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: videos
+      .slice(0, 20)
+      .map((v: any, i: number) => {
+        const thumb =
+          (v.videoUrl && getVideoThumbnail(v.videoUrl)) ||
+          (v.featuredImage?.asset && urlForImage(v.featuredImage).width(1280).height(720).url())
+        if (!thumb || !v.publishedAt) return null
+        const embed = v.videoUrl ? getEmbedUrl(v.videoUrl) : null
+        return {
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'VideoObject',
+            name: v.headline,
+            description: v.excerpt || v.headline,
+            thumbnailUrl: [thumb],
+            uploadDate: v.publishedAt,
+            url: `${site}/${v.category}/${v.slug.current}`,
+            ...(embed ? { embedUrl: embed } : {}),
+          },
+        }
+      })
+      .filter(Boolean),
+  }
+
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(videoJsonLd) }} />
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary">Video</h1>

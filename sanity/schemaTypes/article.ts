@@ -1,5 +1,3 @@
-import { title } from "process"
-
 export default {
   name: 'article',
   title: 'Article',
@@ -71,9 +69,9 @@ export default {
           { title: 'Education', value: 'education' },
           { title: 'Entertainment', value: 'entertainment' },
           { title: 'Tech', value: 'technology' },
-          {title: 'Sports', value: 'Sports'},          
-          {title: 'Science', value: 'science'},
-          {title: 'AI', value: 'AI'},
+          { title: 'Sports', value: 'sports' },
+          { title: 'Science', value: 'science' },
+          { title: 'AI', value: 'ai' },
           { title: 'Explainer', value: 'explainer'},
           { title: 'Edu Consult', value: 'edu-consult'},
         ],
@@ -143,7 +141,7 @@ export default {
       title: 'Video Duration',
       type: 'string',
       description: 'e.g. 3:45 or 12:30',
-      hidden: ({ parent }: any) => !parent?.videoUrl && !parent?.videoFile,
+      hidden: ({ parent }: any) => !parent?.videoUrl,
     },
     {
       name: 'isBreaking',
@@ -183,6 +181,41 @@ export default {
       type: 'datetime',
       validation: (Rule: any) => Rule.required(),
     },
+    // ---- Optional extras (all safe to leave empty) -------------------------
+    {
+      name: 'sources',
+      title: 'Sources',
+      type: 'array',
+      description: 'Optional. Documents, reports or data the story relies on — shown at the end.',
+      of: [{
+        type: 'object',
+        name: 'source',
+        fields: [
+          { name: 'title', type: 'string', title: 'Title', validation: (Rule: any) => Rule.required() },
+          { name: 'url', type: 'url', title: 'Link' },
+        ],
+      }],
+    },
+    {
+      name: 'corrections',
+      title: 'Corrections & updates',
+      type: 'array',
+      description: 'Add one when a published fact changes. Shown publicly on the story and on /corrections.',
+      of: [{
+        type: 'object',
+        name: 'correction',
+        fields: [
+          { name: 'date', type: 'datetime', title: 'Date', initialValue: () => new Date().toISOString(), validation: (Rule: any) => Rule.required() },
+          { name: 'text', type: 'text', rows: 2, title: 'What changed', validation: (Rule: any) => Rule.required() },
+        ],
+        preview: { select: { title: 'text', subtitle: 'date' } },
+      }],
+    },
+    {
+      name: 'seo',
+      title: 'SEO & sharing',
+      type: 'seo',
+    },
     {
       name: 'status',
       title: 'Status',
@@ -201,40 +234,4 @@ export default {
   preview: {
     select: { title: 'headline', subtitle: 'category', media: 'featuredImage' },
   },
-}
-
-// src/lib/comments.ts
-interface RawComment {
-  _id: string
-  name: string
-  body: string
-  submittedAt: string
-  likes: number
-  parentId?: string
-}
-
-export interface ThreadedComment extends RawComment {
-  replies: ThreadedComment[]
-}
-
-export function buildCommentTree(comments: RawComment[]): ThreadedComment[] {
-  const map = new Map<string, ThreadedComment>()
-  const roots: ThreadedComment[] = []
-
-  // First pass: create nodes
-  for (const c of comments) {
-    map.set(c._id, { ...c, replies: [] })
-  }
-
-  // Second pass: link children
-  for (const c of comments) {
-    const node = map.get(c._id)!
-    if (c.parentId && map.has(c.parentId)) {
-      map.get(c.parentId)!.replies.push(node)
-    } else {
-      roots.push(node)
-    }
-  }
-
-  return roots
 }

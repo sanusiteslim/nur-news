@@ -19,7 +19,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const q = getQuery(searchParams)
   return {
-    title: q ? `Search: ${q} | NUR Report` : 'Search | NUR Report',
+    title: q ? `Search: ${q}` : 'Search',
     description: 'Search NUR Report for news, sports, opinion, and analysis.',
     robots: { index: false, follow: true }, // search results pages shouldn't be indexed
   }

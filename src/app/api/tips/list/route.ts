@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { writeClient } from '@/lib/sanity-write'
+import { checkAdmin } from '@/lib/adminAuth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -19,12 +20,7 @@ export const dynamic = 'force-dynamic'
  */
 
 function isAuthorised(request: NextRequest): boolean {
-  const adminToken = process.env.ADMIN_TOKEN
-  if (!adminToken) return false
-
-  const header = request.headers.get('authorization') || ''
-  const provided = header.replace(/^Bearer\s+/i, '').trim()
-  return provided.length > 0 && provided === adminToken
+  return checkAdmin(request) === null
 }
 
 const TIPS_QUERY = `*[_type == "tipSubmission"] | order(submittedAt desc) [0...100] {

@@ -12,16 +12,16 @@ const builder = imageUrlBuilder(client)
 export const urlFor = (source: any) => builder.image(source)
 
 export const homepageQuery = `
-  *[_type == "homepage"][0] {  // ← removed: && _id == "homepage"
-    heroStory->{
+  *[_type == "homepage"] | order(_updatedAt desc)[0] {
+    "heroStory": select(heroStory->status == "published" => heroStory->{
       headline, slug, excerpt, featuredImage, category, publishedAt,
       "author": author->{name, photo}
-    },
+    }),
     sidebarStories[]{
       label,
-      story->{
+      "story": select(story->status == "published" => story->{
         headline, slug, excerpt, featuredImage, category, publishedAt
-      }
+      })
     },
     showLiveUpdates,
     liveUpdatesSource->{
@@ -29,14 +29,12 @@ export const homepageQuery = `
     },
     highlightSection{
       title,
-      "featured": select(
-        ^.heroStory->slug.current == featured->slug.current => null,
-        featured->{
-          headline, slug, excerpt, featuredImage, category, publishedAt,
-          "author": author->{name, photo}
-        }
-      ),
-      list[]->{
+      // De-duplication against the hero is done in lib/homepageDedup.ts.
+      "featured": select(featured->status == "published" => featured->{
+        headline, slug, excerpt, featuredImage, category, publishedAt,
+        "author": author->{name, photo}
+      }),
+      "list": list[@->status == "published"]->{
         headline, slug, excerpt, featuredImage, category, publishedAt
       }
     },
@@ -45,9 +43,9 @@ export const homepageQuery = `
       "articles": *[
         _type == "article" &&
         status == "published" &&
-        (!defined(^.category) || category == ^.category) &&
-        slug.current != ^.^.heroStory->slug.current
-      ] | order(publishedAt desc) [0...9] {
+        (defined(^.category) && category == ^.category ||
+         !defined(^.category) && category != "opinion")
+      ] | order(publishedAt desc) [0...24] {
         headline, slug, excerpt, featuredImage, category, publishedAt,
         "author": author->{name, photo}
       }
@@ -58,7 +56,7 @@ export const homepageQuery = `
         _type == "article" &&
         status == "published" &&
         category == "opinion"
-      ] | order(publishedAt desc) [0...6] {
+      ] | order(publishedAt desc) [0...16] {
         headline, slug, excerpt, featuredImage, category, publishedAt,
         "author": author->{name, photo}
       }
@@ -73,38 +71,24 @@ export const breakingNewsQuery = `
 `
 
 export const articleQuery = `
-  *[_type == "article" && slug.current == $slug][0] {
-    _id, headline, slug, excerpt, category, tags,
+  *[_type == "article" && slug.current == $slug && status == "published"][0] {
+    _id, _updatedAt, headline, slug, excerpt, category, tags,
     featuredImage, isBreaking, hasLiveUpdates, liveUpdates,
-    // markDefs must be dereferenced here, or the internalLink annotation
-    // arrives as a bare _ref and the renderer has no slug to build a URL from.
-    body[]{
-      ...,
-      markDefs[]{
-        ...,
-        _type == "internalLink" => {
-          ...,
-          "reference": @.reference->{ "slug": slug, category }
-        }
-      }
-    },
+    body,
     videoUrl, videoDuration,
     publishedAt,
+    sources, corrections, seo,
     "author": author->{name, photo, bio, slug, role}
   }
 `
 
-export const categoryQuery = (category: string) => `
-  *[_type == "article" && category == "${category}" && status == "published"] | order(publishedAt desc) {
-    headline, slug, excerpt, featuredImage, category, publishedAt,
-    "author": author->{name, photo}
-  }
+// Paginated category listing with a parametrised $category and a
+// $start/$end range — used by every category page, the Opinion page, the
+// per-category RSS feed and the "Show more" API route.
+export const categoryCountQuery = groq`
+  count(*[_type == "article" && category == $category && status == "published"])
 `
 
-// Same data, but paginated with a properly parametrized $category (rather
-// than string-interpolated) and a $start/$end range — used by the Opinion
-// category page's hero + initial feed, and by the "Show more" API route for
-// subsequent pages.
 export const categoryPageQuery = groq`
   *[_type == "article" && category == $category && status == "published"] | order(publishedAt desc) [$start...$end] {
     headline, slug, excerpt, featuredImage, category, publishedAt,
@@ -132,13 +116,16 @@ export const searchQuery = groq`
   }
 `
 
-export const relatedArticlesQuery = `
+// Related = shares a tag (case-insensitive) or the category, ranked by how
+// many tags overlap, then recency. Falls back gracefully when untagged.
+export const relatedArticlesQuery = groq`
   *[
     _type == "article" &&
     status == "published" &&
-    category == $category &&
-    slug.current != $slug
-  ] | order(publishedAt desc) [0...3] {
+    slug.current != $slug &&
+    (category == $category || count(tags[lower(@) in $tags]) > 0)
+  ] | score(boost(count(tags[lower(@) in $tags]) > 0, 2), boost(category == $category, 1))
+    | order(_score desc, publishedAt desc) [0...3] {
     headline, slug, excerpt, featuredImage, category, publishedAt,
     "author": author->{name, photo}
   }
@@ -157,7 +144,7 @@ export const articlesBySlugsQuery = groq`
 `
 
 export const videoArticlesQuery = groq`
-  *[_type == "article" && (category == "video" || defined(videoUrl) || defined(videoFile)) && status == "published"] | order(publishedAt desc) {
+  *[_type == "article" && (category == "video" || defined(videoUrl)) && status == "published"] | order(publishedAt desc) [0...48] {
     _id,
     headline,
     slug,
@@ -176,7 +163,7 @@ export const videoArticlesQuery = groq`
 
 // Latest video for hero section
 export const latestVideoQuery = groq`
-  *[_type == "article" && (category == "video" || defined(videoUrl) || defined(videoFile)) && status == "published"] | order(publishedAt desc)[0] {
+  *[_type == "article" && (category == "video" || defined(videoUrl)) && status == "published"] | order(publishedAt desc)[0] {
     _id,
     headline,
     slug,
@@ -219,18 +206,17 @@ export const allAuthorSlugsQuery = groq`
 
 /** Authors who have at least one published article, for the /authors index. */
 export const activeAuthorsQuery = groq`
-  *[_type == "author" && defined(slug.current) && count(*[_type == "article" && status == "published" && author._ref == ^._id]) > 0]
-    | order(name asc) {
+  *[_type == "author" && defined(slug.current)] {
     name, slug, role, photo, bio,
     "articleCount": count(*[_type == "article" && status == "published" && author._ref == ^._id])
-  }
+  }[articleCount > 0] | order(name asc)
 `
 
 // ---------------------------------------------------------------------------
 // Tag archives  (/tag/[tag])
 // ---------------------------------------------------------------------------
 
-/** Every published article carrying a given tag, newest first. */
+/** Published articles carrying a given tag (matched case-insensitively), newest first. */
 // Two deliberate choices here:
 //  1. `in` (exact array membership), not `match`. `match` does tokenized text
 //     matching, so /tag/war would wrongly pull in "us-israel-iran-war".
@@ -239,8 +225,8 @@ export const activeAuthorsQuery = groq`
 //     collision breaks its tokenizer and makes client.fetch(q, { tag }) a
 //     type error. Any non-colliding name works.
 export const tagArticlesQuery = groq`
-  *[_type == "article" && status == "published" && $topic in tags]
-    | order(publishedAt desc) [0...50] {
+  *[_type == "article" && status == "published" && count(tags[lower(@) == $topic]) > 0]
+    | order(publishedAt desc) [$start...$end] {
     headline, slug, excerpt, featuredImage, category, publishedAt, tags,
     "author": author->{name, photo}
   }
@@ -257,7 +243,7 @@ export const allTagsQuery = groq`
 
 /** How many published articles carry a given tag. */
 export const tagCountQuery = groq`
-  count(*[_type == "article" && status == "published" && $topic in tags])
+  count(*[_type == "article" && status == "published" && count(tags[lower(@) == $topic]) > 0])
 `
 export const latestBriefsQuery = groq`
   *[
@@ -270,6 +256,7 @@ export const latestBriefsQuery = groq`
     slug,
     date,
     edition,
+    list,
     intro
   }
 `
@@ -285,6 +272,7 @@ export const briefBySlugQuery = groq`
     slug,
     date,
     edition,
+    list,
     intro,
     closing,
 
@@ -352,4 +340,97 @@ export const briefBySlugQuery = groq`
       publishedAt
     }
   }
+`
+
+// ---------------------------------------------------------------------------
+// Topic hubs  (/topics, /topics/[slug])
+// ---------------------------------------------------------------------------
+
+export const topicsIndexQuery = groq`
+  *[_type == "topic" && defined(slug.current) && isFeatured != false] | order(_updatedAt desc) {
+    title, slug, summary, heroImage,
+    "count": count(*[_type == "article" && status == "published" && count(tags[lower(@) in ^.^.tags]) > 0])
+  }
+`
+
+export const topicQuery = groq`
+  *[_type == "topic" && slug.current == $slug][0] {
+    _updatedAt, title, slug, summary, intro, heroImage, tags, faq, seo,
+    "pinned": pinned[@->status == "published"]->{
+      headline, slug, excerpt, featuredImage, category, publishedAt,
+      "author": author->{name, photo}
+    },
+    "timeline": timeline[] | order(date desc) {
+      date, text, "article": article->{headline, slug, category}
+    }
+  }
+`
+
+export const topicArticlesQuery = groq`
+  *[_type == "article" && status == "published" && count(tags[lower(@) in $tags]) > 0]
+    | order(publishedAt desc) [0...30] {
+    headline, slug, excerpt, featuredImage, category, publishedAt,
+    "author": author->{name, photo}
+  }
+`
+
+export const allTopicSlugsQuery = groq`
+  *[_type == "topic" && defined(slug.current)]{ "slug": slug.current, _updatedAt }
+`
+
+// ---------------------------------------------------------------------------
+// Live events  (/live, /live/[slug])
+// ---------------------------------------------------------------------------
+
+const livePostProjection = `
+  _key, publishedAt, title, body, isKey, isBreaking, isPinned,
+  "author": author->{name, photo, slug}
+`
+
+export const liveEventsIndexQuery = groq`
+  *[_type == "liveEvent" && defined(slug.current)] | order(startAt desc) [0...40] {
+    title, slug, status, eventType, summary, heroImage, startAt, endAt, category,
+    "postCount": count(posts),
+    "lastPostAt": posts | order(publishedAt desc)[0].publishedAt
+  }
+`
+
+export const liveEventQuery = groq`
+  *[_type == "liveEvent" && slug.current == $slug][0] {
+    _id, _updatedAt, title, slug, status, eventType, summary, keyPoints, heroImage,
+    startAt, endAt, category, seo,
+    "electionSlug": election->slug.current,
+    "topic": relatedTopic->{title, slug},
+    "posts": posts | order(publishedAt desc) [0...200] { ${livePostProjection} }
+  }
+`
+
+/** Posts newer than $since (ISO date) — what the live page polls for. */
+export const livePostsSinceQuery = groq`
+  *[_type == "liveEvent" && slug.current == $slug][0] {
+    status, keyPoints, _updatedAt,
+    "posts": posts[publishedAt > $since] | order(publishedAt desc) { ${livePostProjection} }
+  }
+`
+
+/** The event (if any) currently live — drives the LIVE button and strip. */
+export const currentLiveEventQuery = groq`
+  *[_type == "liveEvent" && status == "live"] | order(startAt desc)[0] {
+    title, slug, "lastPostAt": posts | order(publishedAt desc)[0].publishedAt
+  }
+`
+
+export const allLiveSlugsQuery = groq`
+  *[_type == "liveEvent" && defined(slug.current)]{ "slug": slug.current, _updatedAt }
+`
+
+// ---------------------------------------------------------------------------
+// Corrections log  (/corrections)
+// ---------------------------------------------------------------------------
+
+export const correctionsQuery = groq`
+  *[_type == "article" && status == "published" && count(corrections) > 0] {
+    headline, slug, category,
+    "latest": corrections | order(date desc)[0]
+  } | order(latest.date desc) [0...100]
 `

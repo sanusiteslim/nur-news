@@ -19,6 +19,33 @@ import { confirmationEmail } from './newsletterEmail'
 
 export type SubscriberStatus = 'pending' | 'active' | 'unsubscribed'
 
+/**
+ * Lists a reader can choose between. Kept to two so a growing list stays
+ * inside Resend's free tier (100 emails/day, 3,000/month): breaking news goes
+ * out through push + Telegram instead, which cost nothing per message.
+ */
+export const NEWSLETTER_LISTS = [
+  {
+    id: 'daily',
+    name: 'The NUR Report Brief',
+    cadence: 'Weekday evenings',
+    description: "The day's most important stories from Nigeria, Africa and the world, in one short email.",
+  },
+  {
+    id: 'weekly',
+    name: 'The Weekend Digest',
+    cadence: 'Saturday mornings',
+    description: 'The week in five minutes: the stories that mattered, the best opinion, and what to watch next week.',
+  },
+] as const
+
+export type NewsletterList = (typeof NEWSLETTER_LISTS)[number]['id']
+export const ALL_LISTS: NewsletterList[] = NEWSLETTER_LISTS.map((l) => l.id)
+
+export function isNewsletterList(v: unknown): v is NewsletterList {
+  return typeof v === 'string' && (ALL_LISTS as string[]).includes(v)
+}
+
 export type Subscriber = {
   email: string
   status: SubscriberStatus
@@ -27,6 +54,15 @@ export type Subscriber = {
   unsubscribedAt?: string
   lastConfirmationSentAt?: string
   source?: string
+  /** Lists this reader receives. Missing (older records) = every list. */
+  lists?: NewsletterList[]
+  /** Why the address stopped receiving mail, when it wasn't the reader's choice. */
+  suppressedReason?: 'bounced' | 'complained'
+}
+
+/** Lists a subscriber receives, treating older records as subscribed to all. */
+export function subscriberLists(s: Pick<Subscriber, 'lists'>): NewsletterList[] {
+  return Array.isArray(s.lists) ? s.lists.filter(isNewsletterList) : [...ALL_LISTS]
 }
 
 export const SUBS_KEY = 'newsletter:subs'
@@ -63,6 +99,11 @@ export function unsubscribeUrl(email: string): string {
   return `${getSiteUrl()}/newsletter/unsubscribe?email=${encodeURIComponent(email)}&token=${signToken(email, 'unsubscribe')}`
 }
 
+/** Manage-preferences page. Uses the unsubscribe token: same capability. */
+export function preferencesUrl(email: string): string {
+  return `${getSiteUrl()}/newsletter/preferences?email=${encodeURIComponent(email)}&token=${signToken(email, 'unsubscribe')}`
+}
+
 /** Direct POST endpoint used by the RFC 8058 one-click List-Unsubscribe header. */
 export function oneClickUnsubscribeUrl(email: string): string {
   return `${getSiteUrl()}/api/newsletter/unsubscribe?email=${encodeURIComponent(email)}&token=${signToken(email, 'unsubscribe')}`
@@ -81,8 +122,11 @@ export function normaliseEmail(raw: string): string {
  */
 export async function addNewsletterSubscriber(
   rawEmail: string,
-  source = 'website'
+  source = 'website',
+  requestedLists: NewsletterList[] = ALL_LISTS
 ): Promise<{ ok: boolean; error?: string }> {
+  const lists = requestedLists.filter(isNewsletterList)
+  if (lists.length === 0) return { ok: false, error: 'Choose at least one newsletter' }
   const email = normaliseEmail(rawEmail)
   if (email.length > 254 || !EMAIL_RE.test(email)) return { ok: false, error: 'Invalid email address' }
 
@@ -96,7 +140,15 @@ export async function addNewsletterSubscriber(
     const existing = await redis.hget<Subscriber>(SUBS_KEY, email)
     const now = new Date()
 
-    if (existing?.status === 'active') return { ok: true }
+    if (existing?.status === 'active') {
+      // Already confirmed: quietly add any newly ticked lists. Still returns
+      // the same response, so the form can't be used to probe who subscribes.
+      const merged = Array.from(new Set([...subscriberLists(existing), ...lists]))
+      if (merged.length !== subscriberLists(existing).length) {
+        await redis.hset(SUBS_KEY, { [email]: { ...existing, lists: merged } satisfies Subscriber })
+      }
+      return { ok: true }
+    }
 
     if (
       existing?.status === 'pending' &&
@@ -112,6 +164,7 @@ export async function addNewsletterSubscriber(
       subscribedAt: existing?.subscribedAt ?? now.toISOString(),
       lastConfirmationSentAt: now.toISOString(),
       source: existing?.source ?? source,
+      lists,
     }
     await redis.hset(SUBS_KEY, { [email]: record })
 
@@ -172,6 +225,86 @@ export async function unsubscribeSubscriber(rawEmail: string, token: string): Pr
   }
 }
 
+/** Reads a subscriber for the preferences page (token-checked). */
+export async function getSubscriberForPreferences(
+  rawEmail: string,
+  token: string
+): Promise<{ email: string; status: SubscriberStatus; lists: NewsletterList[] } | null> {
+  const email = normaliseEmail(rawEmail)
+  if (!verifyToken(email, 'unsubscribe', token)) return null
+  const redis = getRedis()
+  if (!redis) return null
+  try {
+    const existing = await redis.hget<Subscriber>(SUBS_KEY, email)
+    if (!existing) return null
+    return {
+      email,
+      status: existing.status,
+      lists: existing.status === 'active' ? subscriberLists(existing) : [],
+    }
+  } catch (err) {
+    console.error('getSubscriberForPreferences failed:', err)
+    return null
+  }
+}
+
+/**
+ * Saves the lists a reader wants. An empty selection unsubscribes them;
+ * choosing lists again re-activates a previously confirmed address (the
+ * token proves they own the inbox, so no fresh opt-in is needed).
+ */
+export async function updatePreferences(
+  rawEmail: string,
+  token: string,
+  requested: unknown[]
+): Promise<{ ok: boolean; status?: SubscriberStatus; lists?: NewsletterList[] }> {
+  const email = normaliseEmail(rawEmail)
+  if (!verifyToken(email, 'unsubscribe', token)) return { ok: false }
+  const redis = getRedis()
+  if (!redis) return { ok: false }
+
+  const lists = Array.from(new Set(requested.filter(isNewsletterList)))
+  try {
+    const existing = await redis.hget<Subscriber>(SUBS_KEY, email)
+    if (!existing) return { ok: false }
+    // Never silently re-mail an address that bounced or reported spam.
+    if (existing.suppressedReason && lists.length > 0) return { ok: false }
+
+    const now = new Date().toISOString()
+    const next: Subscriber =
+      lists.length === 0
+        ? { ...existing, status: 'unsubscribed', unsubscribedAt: now }
+        : {
+            ...existing,
+            lists,
+            status: existing.confirmedAt || existing.status === 'active' ? 'active' : existing.status,
+            unsubscribedAt: undefined,
+          }
+    await redis.hset(SUBS_KEY, { [email]: next })
+    return { ok: true, status: next.status, lists: next.status === 'active' ? lists : [] }
+  } catch (err) {
+    console.error('updatePreferences failed:', err)
+    return { ok: false }
+  }
+}
+
+/** Stops all mail to an address after a hard bounce or spam complaint. */
+export async function suppressSubscriber(rawEmail: string, reason: 'bounced' | 'complained'): Promise<void> {
+  const email = normaliseEmail(rawEmail)
+  const redis = getRedis()
+  if (!redis) return
+  const existing = await redis.hget<Subscriber>(SUBS_KEY, email)
+  if (!existing) return
+  await redis.hset(SUBS_KEY, {
+    [email]: {
+      ...existing,
+      status: 'unsubscribed',
+      unsubscribedAt: new Date().toISOString(),
+      suppressedReason: reason,
+    } satisfies Subscriber,
+  })
+}
+
 /* --------------------------------- reading ---------------------------------- */
 
 async function allSubscribers(): Promise<Subscriber[]> {
@@ -181,10 +314,12 @@ async function allSubscribers(): Promise<Subscriber[]> {
   return all ? Object.values(all) : []
 }
 
-/** Every confirmed subscriber's address — the send list. */
-export async function getActiveEmails(): Promise<string[]> {
+/** Every confirmed subscriber's address — the send list, optionally for one list. */
+export async function getActiveEmails(list?: NewsletterList): Promise<string[]> {
   try {
-    return (await allSubscribers()).filter((s) => s.status === 'active').map((s) => s.email)
+    return (await allSubscribers())
+      .filter((s) => s.status === 'active' && (!list || subscriberLists(s).includes(list)))
+      .map((s) => s.email)
   } catch (err) {
     console.error('getActiveEmails failed:', err)
     return []
@@ -199,6 +334,20 @@ export async function getSubscriberStats(): Promise<Record<SubscriberStatus, num
     console.error('getSubscriberStats failed:', err)
   }
   return stats
+}
+
+/** Active subscribers per list — for the admin screen. */
+export async function getListCounts(): Promise<Record<NewsletterList, number>> {
+  const counts = Object.fromEntries(ALL_LISTS.map((l) => [l, 0])) as Record<NewsletterList, number>
+  try {
+    for (const s of await allSubscribers()) {
+      if (s.status !== 'active') continue
+      for (const l of subscriberLists(s)) counts[l]++
+    }
+  } catch (err) {
+    console.error('getListCounts failed:', err)
+  }
+  return counts
 }
 
 /** Confirmed subscribers — useful for a social-proof line. */

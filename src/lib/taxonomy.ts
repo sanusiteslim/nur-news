@@ -26,6 +26,8 @@ const TAG_LABEL_OVERRIDES: Record<string, string> = {
   afcon: 'AFCON',
   nelfund: 'NELFUND',
   'us-israel-iran-war': 'US-Israel-Iran War',
+  ai: 'AI',
+  'osun-2026': 'Osun 2026',
 }
 
 // Turns a stored tag value (e.g. "world-cup-2026") into a display label

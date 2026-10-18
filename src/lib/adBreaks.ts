@@ -1,23 +1,38 @@
-// Inserts `adBreak` marker blocks into a Portable Text article body every
-// `every` normal paragraphs, so <PortableText> can render an <AdSlot />
-// between them via its `types.adBreak` renderer.
+// Inserts `adBreak` marker blocks into a Portable Text article body so
+// <PortableText> can render an <AdSlot /> between paragraphs via its
+// `types.adBreak` renderer.
 //
-// Only counts actual body paragraphs (block/normal) — headings, blockquotes,
-// images, and lists don't count toward the interval, and a marker is never
-// left as the very last element (no ad dangling after the final paragraph).
-export function withAdBreaks(body: any[], every: number = 2): any[] {
+// Spacing scales with length (house rule):
+//   - up to 8 paragraphs  → an ad after every 2nd paragraph
+//   - 9–16 paragraphs     → every 3rd
+//   - 17 or more          → every 4th
+// Pass `every` to force a fixed interval instead.
+//
+// Only real body paragraphs (block/normal) count — headings, quotes, images
+// and lists don't — and a marker is never left as the last element.
+
+function isParagraph(block: any): boolean {
+  return block?._type === 'block' && (block.style === 'normal' || !block.style) && !block.listItem
+}
+
+export function adInterval(paragraphs: number): number {
+  if (paragraphs <= 8) return 2
+  if (paragraphs <= 16) return 3
+  return 4
+}
+
+export function withAdBreaks(body: any[], every?: number): any[] {
   if (!Array.isArray(body) || body.length === 0) return body
 
+  const interval = every ?? adInterval(body.filter(isParagraph).length)
   const result: any[] = []
   let paragraphCount = 0
 
   for (const block of body) {
     result.push(block)
-
-    const isParagraph = block?._type === 'block' && (block.style === 'normal' || !block.style)
-    if (isParagraph) {
+    if (isParagraph(block)) {
       paragraphCount++
-      if (paragraphCount % every === 0) {
+      if (paragraphCount % interval === 0) {
         result.push({ _type: 'adBreak', _key: `ad-break-${block._key || paragraphCount}` })
       }
     }
@@ -28,4 +43,10 @@ export function withAdBreaks(body: any[], every: number = 2): any[] {
   }
 
   return result
+}
+
+/** Index of the paragraph after which a mid-article block (e.g. newsletter) fits best. */
+export function midpointParagraph(body: any[]): number {
+  const n = Array.isArray(body) ? body.filter(isParagraph).length : 0
+  return n >= 6 ? Math.ceil(n / 2) : 0
 }

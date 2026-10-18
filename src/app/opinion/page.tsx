@@ -5,7 +5,7 @@ import OpinionFeed from '@/components/opinion/OpinionFeed'
 import NewsletterSignup from '@/components/opinion/NewsletterSignup'
 import AdSlot from '@/components/ads/AdSlot'
 
-export const revalidate = 5
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Opinion',

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { addNewsletterSubscriber, rateLimit } from '@/lib/newsletter'
+import { addNewsletterSubscriber, rateLimit, isNewsletterList, ALL_LISTS, normaliseEmail } from '@/lib/newsletter'
+import { clientIp } from '@/lib/adminAuth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,12 +18,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
-  if (!(await rateLimit(`newsletter:${ip}`, 5, 3600))) {
+  // Per-IP and per-address limits: the second stops anyone using the form to
+  // flood one inbox with confirmation emails (which also burns the Resend quota).
+  const [ipOk, emailOk] = await Promise.all([
+    rateLimit(`newsletter:${clientIp(req)}`, 5, 3600),
+    rateLimit(`newsletter-email:${normaliseEmail(email)}`, 3, 86400),
+  ])
+  if (!ipOk || !emailOk) {
     return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
   }
 
-  const result = await addNewsletterSubscriber(email)
+  const lists = Array.isArray(body?.lists) ? body.lists.filter(isNewsletterList) : ALL_LISTS
+  const source = typeof body?.source === 'string' ? body.source.slice(0, 40) : 'website'
+
+  const result = await addNewsletterSubscriber(email, source, lists)
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 400 })
   }

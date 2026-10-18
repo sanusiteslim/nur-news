@@ -21,7 +21,9 @@ export default async function TagsIndexPage() {
 
   // Sort by display label so the A–Z reads naturally, rather than by the
   // underlying slug (which would put "us-israel-iran-war" under U, not "US").
-  const sorted = [...tags].sort((a, b) => formatTag(a).localeCompare(formatTag(b)))
+  // Tags match case-insensitively, so "Sports" and "sports" are one topic.
+  const unique = Array.from(new Set(tags.filter(Boolean).map((t) => t.toLowerCase())))
+  const sorted = unique.sort((a, b) => formatTag(a).localeCompare(formatTag(b)))
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

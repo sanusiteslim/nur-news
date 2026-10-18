@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createArticleDistributionText } from '@/lib/distribution'
 import { sendTelegramMessage } from '@/lib/telegram'
 import { getRedis } from '@/lib/redis'
+import { safeEqual } from '@/lib/adminAuth'
+import { isValidSignature, SIGNATURE_HEADER_NAME } from '@sanity/webhook'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -28,11 +30,25 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const incomingSecret =
-    req.headers.get('x-sanity-webhook-secret') ||
-    req.nextUrl.searchParams.get('secret')
+  // Preferred: Sanity's signed webhook (set the webhook "Secret" field).
+  // Still accepted for existing setups: the x-sanity-webhook-secret header,
+  // or ?secret= in the URL — move off the query param when convenient, as
+  // URLs end up in logs.
+  const rawBody = await req.text()
+  const signature = req.headers.get(SIGNATURE_HEADER_NAME)
+  let authorised = safeEqual(
+    req.headers.get('x-sanity-webhook-secret') || req.nextUrl.searchParams.get('secret'),
+    webhookSecret
+  )
+  if (!authorised && signature) {
+    try {
+      authorised = await isValidSignature(rawBody, signature, webhookSecret)
+    } catch {
+      authorised = false
+    }
+  }
 
-  if (incomingSecret !== webhookSecret) {
+  if (!authorised) {
     return NextResponse.json(
       { error: 'Unauthorized' },
       { status: 401 }
@@ -40,8 +56,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const document =
-      (await req.json()) as SanityDocument
+    const document = JSON.parse(rawBody) as SanityDocument
 
     if (document._type !== 'article') {
       return NextResponse.json({
@@ -81,10 +96,11 @@ export async function POST(req: NextRequest) {
      */
     const dedupeKey = `telegram:published:${document._id}`
 
+    // Claim the slot atomically BEFORE sending, so two concurrent webhook
+    // deliveries (Sanity retries) can't both post.
     if (redis) {
-      const alreadyPublished = await redis.get(dedupeKey)
-
-      if (alreadyPublished) {
+      const claimed = await redis.set(dedupeKey, new Date().toISOString(), { nx: true })
+      if (!claimed) {
         return NextResponse.json({
           ok: true,
           skipped: true,
@@ -102,13 +118,12 @@ export async function POST(req: NextRequest) {
       category: document.category,
     })
 
-    await sendTelegramMessage(text)
-
-    if (redis) {
-      await redis.set(
-        dedupeKey,
-        new Date().toISOString()
-      )
+    try {
+      await sendTelegramMessage(text)
+    } catch (err) {
+      // Release the claim so a retry can post.
+      if (redis) await redis.del(dedupeKey)
+      throw err
     }
 
     return NextResponse.json({
@@ -119,12 +134,7 @@ export async function POST(req: NextRequest) {
     console.error('Sanity Telegram webhook failed:', error)
 
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Webhook failed',
-      },
+      { error: 'Webhook failed' },
       { status: 500 }
     )
   }

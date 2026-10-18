@@ -6,6 +6,11 @@ import { getSiteUrl } from '@/lib/site'
 // sitemap.tsx. See: https://developers.google.com/search/docs/crawling-indexing/sitemaps/news-sitemap
 const NEWS_SITEMAP_WINDOW_HOURS = 48
 
+// Rebuilt at most every 5 minutes (and immediately on publish via
+// /api/revalidate). Without this export Next.js froze the file at build
+// time, so Google News only ever saw stories from before the last deploy.
+export const revalidate = 300
+
 const NEWS_SITEMAP_QUERY = `*[
   _type == "article" &&
   status == "published" &&

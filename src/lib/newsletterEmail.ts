@@ -8,13 +8,14 @@ import { urlFor } from './sanity'
  * because that's what email clients actually support.
  */
 
-const BRAND = '#0f5132' // adjust to the site's brand colour
+const BRAND = '#1B5E20' // brand-800, matches the site header
 const esc = (s: unknown) =>
   String(s ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 
 function shell(title: string, bodyHtml: string, footerHtml: string): string {
   return `<!doctype html>
@@ -59,6 +60,7 @@ export type BriefForEmail = {
   slug: { current: string }
   date: string
   edition?: string
+  list?: 'daily' | 'weekly'
   intro?: string
   closing?: string
   leadStory?: Story | null
@@ -77,13 +79,17 @@ const SECTIONS: [keyof BriefForEmail, string][] = [
   ['world', 'World'],
 ]
 
-const storyUrl = (s: Story) => `${getSiteUrl()}/${s.category || 'news'}/${s.slug.current}`
+const storyUrl = (s: Story) =>
+  `${getSiteUrl()}/${encodeURIComponent(s.category || 'nigeria')}/${encodeURIComponent(s.slug.current)}`
 
 function formatDate(d: string): string {
   return new Date(d).toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 export function briefSubject(b: BriefForEmail): string {
+  if (b.list === 'weekly') {
+    return `The Weekend Digest — ${new Date(b.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}`
+  }
   const label = b.edition === 'morning' ? 'Morning Brief' : 'Evening Brief'
   return `${b.title} — ${label}, ${new Date(b.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}`
 }
@@ -100,7 +106,7 @@ function storyBlock(s: Story): string {
  * Per-recipient unsubscribe URL is passed in — every email is individually
  * addressed, so each carries its own signed link.
  */
-export function briefEmail(brief: BriefForEmail, unsubscribeUrl: string) {
+export function briefEmail(brief: BriefForEmail, unsubscribeUrl: string, preferencesUrl?: string) {
   const site = getSiteUrl()
   const briefUrl = `${site}/brief/${brief.slug.current}`
   const subject = briefSubject(brief)
@@ -141,7 +147,9 @@ export function briefEmail(brief: BriefForEmail, unsubscribeUrl: string) {
   const html = shell(
     subject,
     body,
-    `You're receiving this because you subscribed to the NUR Report Brief at ${esc(site)}.<br><a href="${esc(unsubscribeUrl)}" style="color:#6b7280;">Unsubscribe</a> &nbsp;·&nbsp; <a href="${esc(briefUrl)}" style="color:#6b7280;">View in browser</a>`
+    `You're receiving this because you subscribed to ${brief.list === 'weekly' ? 'the Weekend Digest' : 'the NUR Report Brief'} at ${esc(site)}.<br>${
+      preferencesUrl ? `<a href="${esc(preferencesUrl)}" style="color:#6b7280;">Manage newsletters</a> &nbsp;·&nbsp; ` : ''
+    }<a href="${esc(unsubscribeUrl)}" style="color:#6b7280;">Unsubscribe</a> &nbsp;·&nbsp; <a href="${esc(briefUrl)}" style="color:#6b7280;">View in browser</a>`
   )
 
   const lines: string[] = [brief.title, formatDate(brief.date), '']
@@ -156,6 +164,7 @@ export function briefEmail(brief: BriefForEmail, unsubscribeUrl: string) {
   }
   lines.push(`Read online: ${briefUrl}`)
   if (brief.closing) lines.push('', brief.closing)
+  if (preferencesUrl) lines.push('', `Manage newsletters: ${preferencesUrl}`)
   lines.push('', `Unsubscribe: ${unsubscribeUrl}`)
 
   return { subject, html, text: lines.join('\n') }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Facebook, Twitter, MessageCircle, Link2, Check } from 'lucide-react'
+import { Facebook, Link2, Check } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 

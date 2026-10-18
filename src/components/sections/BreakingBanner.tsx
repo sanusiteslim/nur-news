@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { urlForImage } from '@/lib/image'
 import Image from 'next/image'

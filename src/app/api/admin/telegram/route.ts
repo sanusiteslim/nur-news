@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendTelegramMessage } from '@/lib/telegram'
+import { checkAdmin } from '@/lib/adminAuth'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,22 +10,9 @@ type TelegramMessage = {
 }
 
 export async function POST(req: NextRequest) {
-  const adminToken = process.env.ADMIN_TOKEN
-
-  if (!adminToken) {
-    return NextResponse.json(
-      { error: 'ADMIN_TOKEN is not configured' },
-      { status: 500 }
-    )
-  }
-
-  const auth = req.headers.get('authorization')
-
-  if (auth !== `Bearer ${adminToken}`) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+  const denied = checkAdmin(req)
+  if (denied) {
+    return NextResponse.json({ error: denied.error }, { status: denied.status })
   }
 
   try {

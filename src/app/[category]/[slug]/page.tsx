@@ -1,5 +1,6 @@
+import { cache } from 'react'
 import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { formatPublishedDate } from '@/lib/formatDate'
@@ -11,86 +12,138 @@ import { PortableText } from '@portabletext/react'
 import ShareButtons from '@/components/article/ShareButtons'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import ViewTracker from '@/components/article/ViewTracker'
+import { CorrectionsNotice, SourcesList } from '@/components/article/SourcesAndCorrections'
+import NewsletterSignup from '@/components/opinion/NewsletterSignup'
 import { getReadingTime } from '@/lib/readingTime'
 import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
+import { jsonLdString, newsArticleJsonLd } from '@/lib/jsonld'
 import AdSlot from '@/components/ads/AdSlot'
 import type { Metadata } from 'next'
 
-export const revalidate = 5
+// Refreshed on publish by /api/revalidate; this is only the fallback timer.
+export const revalidate = 120
 
-export async function generateMetadata({ params }: { params: { category: string; slug: string } }): Promise<Metadata> {
-  const article = await client.fetch(articleQuery, { slug: params.slug })
-  if (!article) return { title: 'Article Not Found | NURR' }
+type Params = { params: { category: string; slug: string } }
 
-  const path = `/${params.category}/${params.slug}`
-  const ogImage = article.featuredImage?.asset
-    ? urlForImage(article.featuredImage).width(1200).height(630).url()
-    : undefined
+// Returning [] (and leaving dynamicParams on) makes every article
+// incrementally static: rendered on first visit, then served from cache
+// until revalidated. Without it each view was a fresh server render.
+export function generateStaticParams() {
+  return []
+}
+
+// One Sanity request per render, shared by generateMetadata and the page.
+const getArticle = cache((slug: string) => client.fetch(articleQuery, { slug }))
+
+function shareImage(article: any): string | undefined {
+  const source = article.seo?.ogImage?.asset ? article.seo.ogImage : article.featuredImage
+  if (!source?.asset) return undefined
+  // JPEG keeps the file small enough for WhatsApp link previews.
+  return urlForImage(source).width(1200).height(630).fit('crop').format('jpg').quality(80).url()
+}
+
+/** Only http(s), mailto and same-site links are rendered as links. */
+function safeHref(href?: string): string | null {
+  if (!href) return null
+  if (href.startsWith('/')) return href
+  try {
+    const u = new URL(href)
+    return ['http:', 'https:', 'mailto:'].includes(u.protocol) ? u.toString() : null
+  } catch {
+    return null
+  }
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const article = await getArticle(params.slug)
+  if (!article) return { title: 'Article not found' }
+
+  const path = `/${article.category}/${article.slug.current}`
+  const title = article.seo?.metaTitle || article.headline
+  const description = article.seo?.metaDescription || article.excerpt
+  const ogImage = shareImage(article)
+  const modified = [article._updatedAt, ...(article.corrections || []).map((c: any) => c.date)]
+    .filter(Boolean)
+    .sort()
+    .pop()
 
   return {
-    title: `${article.headline} | NURR`,
-    description: article.excerpt,
+    // The layout template appends " | NUR Report".
+    title,
+    description,
     alternates: {
       canonical: path,
       types: {
-        'application/rss+xml': [{ url: '/rss.xml', title: 'NUR Report RSS Feed' }],
+        'application/rss+xml': [
+          { url: '/rss.xml', title: 'NUR Report' },
+          { url: `/${article.category}/rss.xml`, title: `${categoryLabels[article.category] || article.category} | NUR Report` },
+        ],
       },
     },
+    robots: article.seo?.noindex ? { index: false, follow: true } : { 'max-image-preview': 'large' },
     openGraph: {
       type: 'article',
-      title: article.headline,
-      description: article.excerpt,
+      siteName: 'NUR Report',
+      locale: 'en_NG',
+      title,
+      description,
       url: path,
       publishedTime: article.publishedAt,
+      modifiedTime: modified,
+      section: categoryLabels[article.category] || article.category,
+      tags: article.tags,
+      authors: article.author?.name ? [article.author.name] : undefined,
       images: ogImage
         ? [{ url: ogImage, width: 1200, height: 630, alt: article.featuredImage?.alt || article.headline }]
         : undefined,
     },
     twitter: {
       card: 'summary_large_image',
-      title: article.headline,
-      description: article.excerpt,
+      title,
+      description,
       images: ogImage ? [ogImage] : undefined,
     },
   }
 }
 
-export default async function ArticlePage({ params }: { params: { category: string; slug: string } }) {
-  const article = await client.fetch(articleQuery, { slug: params.slug })
+export default async function ArticlePage({ params }: Params) {
+  const article = await getArticle(params.slug)
 
   if (!article) return notFound()
 
+  // One canonical URL per story: /wrong-section/slug → /right-section/slug.
+  if (article.category !== params.category) {
+    permanentRedirect(`/${article.category}/${article.slug.current}`)
+  }
+
+  const tags: string[] = (article.tags || []).map((t: string) => t.toLowerCase())
   const relatedArticles = await client.fetch(relatedArticlesQuery, {
     category: article.category,
-    slug: params.slug,
+    slug: article.slug.current,
+    tags,
   })
 
-  const shareUrl = `${getSiteUrl()}/${params.category}/${params.slug}`
+  const shareUrl = `${getSiteUrl()}/${article.category}/${article.slug.current}`
   const readingTime = getReadingTime(article.body)
+  const categoryLabel = categoryLabels[article.category] || article.category
 
-  const articleImage = article.featuredImage?.asset
-    ? urlForImage(article.featuredImage).width(1200).height(630).url()
-    : undefined
+  const jsonLdImages = article.featuredImage?.asset
+    ? [
+        urlForImage(article.featuredImage).width(1200).height(1200).fit('crop').url(),
+        urlForImage(article.featuredImage).width(1200).height(900).fit('crop').url(),
+        urlForImage(article.featuredImage).width(1200).height(675).fit('crop').url(),
+      ]
+    : []
+  const jsonLd = newsArticleJsonLd(article, jsonLdImages, categoryLabel)
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'NewsArticle',
-    headline: article.headline,
-    description: article.excerpt,
-    image: articleImage ? [articleImage] : undefined,
-    datePublished: article.publishedAt,
-    dateModified: article.publishedAt,
-    mainEntityOfPage: { '@type': 'WebPage', '@id': shareUrl },
-    author: article.author?.name
-      ? { '@type': 'Person', name: article.author.name }
-      : undefined,
-    publisher: {
-      '@type': 'Organization',
-      name: 'NUR Report',
-      logo: { '@type': 'ImageObject', url: `${getSiteUrl()}/icon-512.png` },
-    },
-  }
+  const lastUpdate = [article._updatedAt, ...(article.corrections || []).map((c: any) => c.date)]
+    .filter(Boolean)
+    .sort()
+    .pop()
+  // Only call it "Updated" when a correction was logged — routine Studio
+  // saves (typo fixes, image swaps) shouldn't look like news changes.
+  const showUpdated = (article.corrections || []).length > 0 && lastUpdate
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -98,16 +151,18 @@ export default async function ArticlePage({ params }: { params: { category: stri
       <script
         type="application/ld+json"
         // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }}
       />
+
+      {/* Kicker — identical for every section, Opinion included. */}
       <div className="mb-2">
         <span className="text-brand-700 text-base md:text-lg font-bold uppercase tracking-wide">
-          {categoryLabels[article.category] || article.category}
+          {categoryLabel}
         </span>
-        {article.tags && article.tags.length > 0 && (
+        {tags.length > 0 && (
           <p className="text-sm md:text-base text-text-muted mt-1">
-            {categoryLabels[article.category] || article.category}
-            {article.tags.map((tag: string) => ` | ${formatTag(tag)}`).join('')}
+            {categoryLabel}
+            {tags.map((tag) => ` | ${formatTag(tag)}`).join('')}
           </p>
         )}
       </div>
@@ -117,7 +172,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
       <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           {article.author?.photo && (
-            <Image src={urlForImage(article.author.photo).width(48).height(48).url()} alt={article.author.name} width={48} height={48} className="rounded-full" />
+            <Image src={urlForImage(article.author.photo).width(96).height(96).url()} alt={article.author.name} width={48} height={48} className="rounded-full" />
           )}
           <div>
             <p className="font-semibold text-text-primary">
@@ -133,7 +188,13 @@ export default async function ArticlePage({ params }: { params: { category: stri
               )}
             </p>
             <p className="text-sm text-text-muted">
-              {formatPublishedDate(article.publishedAt)}
+              <time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt)}</time>
+              {showUpdated && (
+                <>
+                  {' · Updated '}
+                  <time dateTime={lastUpdate}>{formatPublishedDate(lastUpdate)}</time>
+                </>
+              )}
               {article.author?.role && ` · ${article.author.role}`}
               {` · ${readingTime} min read`}
             </p>
@@ -156,6 +217,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
                   title={article.headline}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full"
                 />
               </div>
@@ -174,6 +236,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
                 alt={article.featuredImage.alt || article.headline}
                 width={1200}
                 height={675}
+                sizes="(max-width: 896px) 100vw, 896px"
                 className="w-full rounded-lg"
                 priority
               />
@@ -191,9 +254,11 @@ export default async function ArticlePage({ params }: { params: { category: stri
         )
       })()}
 
+      <CorrectionsNotice corrections={article.corrections} />
+
       <div className="article-body">
         <PortableText
-          value={withAdBreaks(article.body, 2)}
+          value={withAdBreaks(article.body)}
           components={{
             block: {
               normal: ({ children }: any) => <p className="mb-6 text-lg leading-relaxed text-text-primary">{children}</p>,
@@ -210,11 +275,20 @@ export default async function ArticlePage({ params }: { params: { category: stri
               number: ({ children }: any) => <ol className="list-decimal pl-6 mb-6 space-y-2 text-text-primary">{children}</ol>,
             },
             marks: {
-              link: ({ value, children }: any) => (
-                <a href={value?.href} className="text-brand-700 underline underline-offset-2 hover:text-brand-800" target="_blank" rel="noopener noreferrer">
-                  {children}
-                </a>
-              ),
+              link: ({ value, children }: any) => {
+                const href = safeHref(value?.href)
+                if (!href) return <>{children}</>
+                const external = !href.startsWith('/') && !href.startsWith(getSiteUrl())
+                return (
+                  <a
+                    href={href}
+                    className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
+                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {children}
+                  </a>
+                )
+              },
               strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
               em: ({ children }: any) => <em className="italic">{children}</em>,
             },
@@ -228,6 +302,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
                       alt={value.alt || ''}
                       width={800}
                       height={500}
+                      sizes="(max-width: 896px) 100vw, 800px"
                       className="w-full rounded-lg"
                     />
                     {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
@@ -240,15 +315,17 @@ export default async function ArticlePage({ params }: { params: { category: stri
         />
       </div>
 
+      <SourcesList sources={article.sources} />
+
       {/* Topic pills — each links to its tag archive, giving readers a route
           into the wider story thread instead of a dead end at the article's end. */}
-      {article.tags && article.tags.length > 0 && (
+      {tags.length > 0 && (
         <div className="mt-10 pt-6 border-t border-gray-200">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted mb-3">
             Topics
           </h2>
           <div className="flex flex-wrap gap-2">
-            {article.tags.map((tag: string) => (
+            {tags.map((tag) => (
               <Link
                 key={tag}
                 href={`/tag/${tag}`}
@@ -274,7 +351,7 @@ export default async function ArticlePage({ params }: { params: { category: stri
             <div className="flex items-start gap-4">
               {article.author.photo && (
                 <Image
-                  src={urlForImage(article.author.photo).width(64).height(64).url()}
+                  src={urlForImage(article.author.photo).width(128).height(128).url()}
                   alt={article.author.name}
                   width={64}
                   height={64}
@@ -325,6 +402,8 @@ export default async function ArticlePage({ params }: { params: { category: stri
           </div>
         </div>
       )}
+
+      <NewsletterSignup variant="inline" source={`article-${article.category}`} />
 
       <RelatedArticles articles={relatedArticles} />
     </article>

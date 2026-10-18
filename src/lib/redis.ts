@@ -68,3 +68,42 @@ export const redis: Redis = new Proxy({} as Redis, {
     return typeof value === 'function' ? value.bind(client) : value
   },
 })
+
+/**
+ * Read-only Redis command for cached (ISR) pages.
+ *
+ * The Upstash SDK sends every request with `cache: 'no-store'`, which
+ * Next.js 14 refuses inside a statically cached page ("Page changed from
+ * static to dynamic"). This issues the same command over Upstash's plain
+ * REST GET form instead, cached by Next for `revalidate` seconds, so pages
+ * like the homepage and live results stay cheap ISR pages.
+ *
+ * Returns the raw `result` (strings, as Redis stores them), or null.
+ */
+export async function redisReadCached(command: (string | number)[], revalidate: number): Promise<any> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return null
+  try {
+    const path = command.map((part) => encodeURIComponent(String(part))).join('/')
+    const res = await fetch(`${url.replace(/\/$/, '')}/${path}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data?.result ?? null
+  } catch (err) {
+    console.error('[redis] cached read failed:', err)
+    return null
+  }
+}
+
+/** HGETALL via redisReadCached, as an object. */
+export async function hgetallCached(key: string, revalidate: number): Promise<Record<string, string> | null> {
+  const flat = await redisReadCached(['hgetall', key], revalidate)
+  if (!Array.isArray(flat) || flat.length === 0) return null
+  const out: Record<string, string> = {}
+  for (let i = 0; i < flat.length; i += 2) out[flat[i]] = flat[i + 1]
+  return out
+}

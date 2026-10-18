@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Cookie Policy | NUR Report',
+  title: 'Cookie Policy',
   description: 'Cookie Policy for NUR Report.',
 }
 

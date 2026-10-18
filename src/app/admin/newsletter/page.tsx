@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 
-type BriefRow = { slug: string; title: string; date: string; edition?: string; sent: boolean }
+type BriefRow = { slug: string; title: string; date: string; edition?: string; list?: 'daily' | 'weekly'; sent: boolean }
 type Stats = { pending: number; active: number; unsubscribed: number }
 
 export default function AdminNewsletterPage() {
   const [token, setToken] = useState('')
   const [stats, setStats] = useState<Stats | null>(null)
+  const [lists, setLists] = useState<{ daily: number; weekly: number } | null>(null)
   const [briefs, setBriefs] = useState<BriefRow[]>([])
   const [slug, setSlug] = useState('')
   const [testTo, setTestTo] = useState('')
@@ -21,6 +22,7 @@ export default function AdminNewsletterPage() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) return setStatus(data.error || 'Failed to load')
     setStats(data.stats)
+    setLists(data.lists ?? null)
     setBriefs(data.briefs)
     if (!slug && data.briefs[0]) setSlug(data.briefs[0].slug)
     setStatus('')
@@ -29,7 +31,10 @@ export default function AdminNewsletterPage() {
   async function send(mode: 'test' | 'all', force = false) {
     if (!slug) return setStatus('Pick a brief first.')
     if (mode === 'test' && !testTo) return setStatus('Enter a test email address.')
-    if (mode === 'all' && !confirm(`Send "${slug}" to ${stats?.active ?? 'all'} confirmed subscribers?`)) return
+    const brief = briefs.find((b) => b.slug === slug)
+    const list = brief?.list === 'weekly' ? 'weekly' : 'daily'
+    const count = lists?.[list] ?? stats?.active ?? 'all'
+    if (mode === 'all' && !confirm(`Send "${slug}" to ${count} ${list === 'weekly' ? 'Weekend Digest' : 'Daily Brief'} subscribers?`)) return
     setStatus(mode === 'test' ? 'Sending test…' : 'Sending to subscribers…')
     const res = await fetch('/api/admin/newsletter', {
       method: 'POST',
@@ -69,12 +74,23 @@ export default function AdminNewsletterPage() {
         </div>
       )}
 
+      {lists && (
+        <div className="mt-3 grid grid-cols-2 gap-3 text-center text-sm">
+          <div className="rounded-xl border p-3"><span className="font-bold">{lists.daily}</span> on Daily Brief</div>
+          <div className="rounded-xl border p-3"><span className="font-bold">{lists.weekly}</span> on Weekend Digest</div>
+        </div>
+      )}
+      <p className="mt-3 text-xs text-gray-500">
+        Resend free tier: 100 emails/day, 3,000/month. A send to more than 100 people needs a paid plan or
+        must be split across days.
+      </p>
+
       <label className="mt-8 mb-2 block text-sm font-semibold">Brief</label>
       <select value={slug} onChange={(e) => setSlug(e.target.value)} className="w-full rounded-lg border px-4 py-3">
         {briefs.length === 0 && <option value="">Load to see published briefs</option>}
         {briefs.map((b) => (
           <option key={b.slug} value={b.slug}>
-            {b.date} · {b.edition ?? 'evening'} · {b.title}
+            {b.date} · {b.list === 'weekly' ? 'weekend' : b.edition ?? 'evening'} · {b.title}
             {b.sent ? ' (sent)' : ''}
           </option>
         ))}

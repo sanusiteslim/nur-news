@@ -2,18 +2,14 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
-// ElectionTicker is currently unmounted below — the Osun election it covered
-// has passed. Left in place (component + import) since the same ticker
-// style/pattern is the starting point for a live sports-score ticker later.
-// import ElectionTicker from '@/components/election/ElectionTicker'
 import Footer from '@/components/layout/Footer'
 import InstallAndNotifyPrompt from '@/components/pwa/InstallAndNotifyPrompt'
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration'
 import { getSiteUrl } from '@/lib/site'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import Script from 'next/script'
-import UpdateToast from '@/components/pwa/UpdateToast'
-
+import { client, currentLiveEventQuery } from '@/lib/sanity'
+import { jsonLdString, siteJsonLd } from '@/lib/jsonld'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -41,7 +37,7 @@ export const metadata: Metadata = {
   appleWebApp: {
   capable: true,
   statusBarStyle: 'black-translucent',
-  title: 'NURR',
+  title: 'NUR Report',
 },
 formatDetection: {
   telephone: false,
@@ -49,12 +45,15 @@ formatDetection: {
 
   description: siteDescription,
   alternates: {
+    canonical: '/',
     types: {
       'application/rss+xml': [{ url: '/rss.xml', title: 'NUR Report RSS Feed' }],
     },
   },
+  robots: { index: true, follow: true, 'max-image-preview': 'large' },
   openGraph: {
     type: 'website',
+    locale: 'en_NG',
     siteName: 'NUR Report',
     title: 'NUR Report',
     description: siteDescription,
@@ -70,15 +69,21 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-   const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
-   const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID
+
+  // Drives the LIVE button: it only appears while an event is actually live.
+  const liveEvent = await client
+    .fetch<{ title: string; slug: { current: string } } | null>(currentLiveEventQuery)
+    .catch(() => null)
+  const live = liveEvent?.slug?.current ? { href: `/live/${liveEvent.slug.current}`, title: liveEvent.title } : null
 
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en-NG" className={inter.variable}>
       <body className="font-sans antialiased bg-white text-text-primary">
-        {/* Your sticky header, main pages, and footer layout layout */}        
-        <Navbar />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(siteJsonLd()) }} />
+        <Navbar live={live} />
         <main className="min-h-screen">{children}</main>
         <Footer />
         <ServiceWorkerRegistration />

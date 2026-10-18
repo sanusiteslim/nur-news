@@ -1,13 +1,24 @@
-/.node_modules
+# dependencies
+node_modules/
+
+# build output
 /.next
+/out
+*.tsbuildinfo
+next-env.d.ts
+
+# env — commit only the example file
+.env*
+!.env.example
+
+# local data, logs, editor
+.data/
+*.log
+buildlog.txt
 /.vscode
 /.vercel
-/out
-.env.local
-*.log
-next-env.d.ts
-.env.example
-node_modules/
-.data/
+
+# Sanity Studio build output
 sanity/.sanity
 sanity/dist
+sanity/node_modules

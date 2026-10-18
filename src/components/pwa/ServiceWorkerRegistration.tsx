@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { clearAppBadge } from '@/lib/pwa'
 import UpdateToast from './UpdateToast'
 
@@ -11,17 +11,14 @@ import UpdateToast from './UpdateToast'
 // already said yes to notifications.
 export default function ServiceWorkerRegistration() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null)
+  const updateRequested = useRef(false)
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
-    let registration: ServiceWorkerRegistration | undefined
-
     navigator.serviceWorker
       .register('/sw.js')
       .then((reg) => {
-        registration = reg
-
         // A version already finished installing before this tab opened.
         if (reg.waiting) setWaitingWorker(reg.waiting)
 
@@ -37,14 +34,16 @@ export default function ServiceWorkerRegistration() {
       })
       .catch((err) => console.error('Service worker registration failed:', err))
 
-    // Reload once the new worker actually takes control, so the update
-    // toast's "Refresh" button reflects real state instead of a stale page.
+    // Reload only when the reader asked for the update (tapped Refresh).
+    // The first-ever install also fires controllerchange — reloading then
+    // threw first-time visitors back to the top and double-counted views.
     let refreshing = false
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return
+    const onControllerChange = () => {
+      if (refreshing || !updateRequested.current) return
       refreshing = true
       window.location.reload()
-    })
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') clearAppBadge()
@@ -52,10 +51,14 @@ export default function ServiceWorkerRegistration() {
     document.addEventListener('visibilitychange', onVisible)
     clearAppBadge()
 
-    return () => document.removeEventListener('visibilitychange', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
+    }
   }, [])
 
   const applyUpdate = () => {
+    updateRequested.current = true
     waitingWorker?.postMessage({ type: 'SKIP_WAITING' })
     setWaitingWorker(null)
   }

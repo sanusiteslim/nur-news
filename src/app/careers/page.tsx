@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Careers | NUR Report',
+  title: 'Careers',
   description: 'Join the NUR Report team.',
 }
 

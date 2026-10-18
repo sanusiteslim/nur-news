@@ -6,8 +6,11 @@ import LiveUpdates from '@/components/sections/LiveUpdates'
 import SectionHighlight from '@/components/sections/SectionHighlight'
 import SectionGrid from '@/components/sections/SectionGrid'
 import SectionOpinion from '@/components/sections/SectionOpinion'
+import MostRead from '@/components/sections/MostRead'
+import TopicsStrip from '@/components/sections/TopicsStrip'
+import NewsletterSignup from '@/components/opinion/NewsletterSignup'
 
-export const revalidate = 5
+export const revalidate = 60
 
 export default async function HomePage() {
   const [rawHomepage, breaking] = await Promise.all([
@@ -43,11 +46,23 @@ export default async function HomePage() {
         </section>
       )}
 
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <MostRead />
+      </section>
+
       {homepage?.opinionSection && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <SectionOpinion data={homepage.opinionSection} />
         </section>
       )}
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+        <TopicsStrip />
+      </section>
+
+      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 flex justify-center">
+        <NewsletterSignup variant="inline" source="homepage" />
+      </section>
     </div>
   )
 }

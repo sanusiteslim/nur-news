@@ -2,8 +2,15 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { client } from '@/lib/sanity'
 import { briefBySlugQuery } from '@/lib/sanity'
+import type { Metadata } from 'next'
 
 export const revalidate = 300
+
+// Rendered on first visit, then cached until revalidated (ISR), instead of
+// a fresh server render on every view.
+export function generateStaticParams() {
+  return []
+}
 
 type Props = {
   params: Promise<{
@@ -46,6 +53,21 @@ function StoryList({
       </div>
     </section>
   )
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const brief = await client.fetch(briefBySlugQuery, { slug }).catch(() => null)
+  if (!brief) return { title: 'Brief not found' }
+  const label = brief.list === 'weekly' ? 'Weekend Digest' : 'The Brief'
+  const date = brief.date
+    ? new Date(brief.date).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })
+    : ''
+  return {
+    title: `${label}${date ? ` — ${date}` : ''}`,
+    description: brief.intro || 'The most important stories from NUR Report, in one concise briefing.',
+    alternates: { canonical: `/brief/${slug}` },
+  }
 }
 
 export default async function BriefPage({ params }: Props) {

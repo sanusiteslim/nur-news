@@ -1,5 +1,12 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { client, latestBriefsQuery } from '@/lib/sanity'
+
+export const metadata: Metadata = {
+  title: 'The Brief — newsletter archive',
+  description: 'Every edition of the NUR Report Brief and Weekend Digest newsletters.',
+  alternates: { canonical: '/brief' },
+}
 
 export const revalidate = 300
 

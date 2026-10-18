@@ -1,5 +1,5 @@
 import 'server-only'
-import { getRedis } from './redis'
+import { getRedis, redisReadCached } from './redis'
 
 const VIEWS_ZSET_KEY = 'article:views'
 const TOTAL_VIEWS_KEY = 'site:total-views'
@@ -34,26 +34,18 @@ export interface MostViewedEntry {
   views: number
 }
 
-/** Top N most-viewed article slugs, most-viewed first. */
+/**
+ * Top N most-viewed article slugs, most-viewed first. Read through the
+ * cached REST path (10 minutes) so ISR pages showing Most Read stay cached.
+ */
 export async function getMostViewedSlugs(limit = 5): Promise<MostViewedEntry[]> {
-  const redis = getRedis()
-  if (!redis) return []
-
-  try {
-    const raw = await redis.zrange<(string | number)[]>(VIEWS_ZSET_KEY, 0, limit - 1, {
-      rev: true,
-      withScores: true,
-    })
-
-    const entries: MostViewedEntry[] = []
-    for (let i = 0; i < raw.length; i += 2) {
-      entries.push({ slug: String(raw[i]), views: Number(raw[i + 1]) })
-    }
-    return entries
-  } catch (err) {
-    console.error('getMostViewedSlugs failed:', err)
-    return []
+  const raw = await redisReadCached(['zrange', VIEWS_ZSET_KEY, 0, limit - 1, 'REV', 'WITHSCORES'], 600)
+  if (!Array.isArray(raw)) return []
+  const entries: MostViewedEntry[] = []
+  for (let i = 0; i < raw.length; i += 2) {
+    entries.push({ slug: String(raw[i]), views: Number(raw[i + 1]) })
   }
+  return entries
 }
 
 /** Total article views recorded site-wide since tracking began. Used for the
