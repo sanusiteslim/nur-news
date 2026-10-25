@@ -9,12 +9,16 @@ export default function OpinionFeed({
   initialHasMore,
   initialOffset,
   pageSize = 10,
+  kicker = 'Opinion',
+  showQuoteBadge = true,
 }: {
   category: string
   initialArticles: any[]
   initialHasMore: boolean
   initialOffset: number
   pageSize?: number
+  kicker?: string
+  showQuoteBadge?: boolean
 }) {
   const [articles, setArticles] = useState(initialArticles)
   const [hasMore, setHasMore] = useState(initialHasMore)
@@ -33,7 +37,7 @@ export default function OpinionFeed({
       setOffset((prev) => prev + data.articles.length)
       setHasMore(data.hasMore)
     } catch (err) {
-      console.error('Failed to load more opinion articles:', err)
+      console.error(`Failed to load more ${category} articles:`, err)
       setError(true)
     } finally {
       setLoading(false)
@@ -43,7 +47,7 @@ export default function OpinionFeed({
   return (
     <div>
       {articles.map((article) => (
-        <OpinionListItem key={article.slug.current} article={article} />
+        <OpinionListItem key={article.slug.current} article={article} kicker={kicker} showQuoteBadge={showQuoteBadge} />
       ))}
 
       {error && <p className="text-sm text-accent-red text-center mt-6">Couldn&apos;t load more. Try again.</p>}

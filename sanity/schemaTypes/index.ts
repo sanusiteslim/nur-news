@@ -13,6 +13,7 @@ import sectionVideo from './sectionVideo'
 import seo from './seo'
 import tipSubmission from './tipSubmission'
 import topic from './topic'
+import { richContentTypes } from './richContent'
 
 // `comment` stays registered so existing documents keep opening in Studio;
 // it's simply not surfaced in the desk structure.
@@ -20,4 +21,5 @@ export const schemaTypes = [
   article, author, homepage, tipSubmission, comment, election,
   sectionHighlight, sectionGrid, sectionOpinion, sectionVideo, liveUpdate, brief,
   seo, topic, liveEvent,
+  ...richContentTypes,
 ]

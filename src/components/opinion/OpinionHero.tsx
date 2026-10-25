@@ -28,7 +28,22 @@ function ByLine({ article }: { article: any }) {
   )
 }
 
-export default function OpinionHero({ featured, gridItems }: { featured: any; gridItems: any[] }) {
+/**
+ * Lead story + 2x4 grid. Used by /opinion and every other category page.
+ * `kicker` is the small label above headlines; `showQuoteBadge` adds the
+ * opinion quote mark on thumbnails (opinion only).
+ */
+export default function OpinionHero({
+  featured,
+  gridItems,
+  kicker = 'Opinion',
+  showQuoteBadge = true,
+}: {
+  featured: any
+  gridItems: any[]
+  kicker?: string
+  showQuoteBadge?: boolean
+}) {
   return (
     <section className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-10 pb-10 border-b border-gray-200">
       {/* Featured piece */}
@@ -48,12 +63,12 @@ export default function OpinionHero({ featured, gridItems }: { featured: any; gr
               <span className="text-brand-800 font-bold text-3xl">NURR</span>
             </div>
           )}
-          <QuoteBadge />
+          {showQuoteBadge && <QuoteBadge />}
         </div>
-        <span className="text-xs font-bold uppercase tracking-wider text-brand-700">Opinion</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-text-primary mt-2 leading-tight group-hover:text-brand-700 transition-colors">
+        <span className="text-xs font-bold uppercase tracking-wider text-brand-700">{kicker}</span>
+        <h2 className="text-2xl md:text-3xl font-bold text-text-primary mt-2 leading-tight group-hover:text-brand-700 transition-colors">
           {featured.headline}
-        </h1>
+        </h2>
         <p className="text-text-secondary mt-3 leading-relaxed">{featured.excerpt}</p>
         <ByLine article={featured} />
       </Link>
@@ -76,9 +91,9 @@ export default function OpinionHero({ featured, gridItems }: { featured: any; gr
                   <span className="text-brand-800 font-bold text-xs">NUR</span>
                 </div>
               )}
-              <QuoteBadge />
+              {showQuoteBadge && <QuoteBadge />}
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700">Opinion</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-brand-700">{kicker}</span>
             <h3 className="text-sm font-semibold text-text-primary mt-1 leading-snug line-clamp-2 group-hover:text-brand-700 transition-colors">
               {item.headline}
             </h3>

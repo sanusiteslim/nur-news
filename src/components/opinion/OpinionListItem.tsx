@@ -4,12 +4,20 @@ import { urlForImage } from '@/lib/image'
 import { formatPublishedDate } from '@/lib/formatDate'
 import QuoteBadge from '@/components/ui/QuoteBadge'
 
-export default function OpinionListItem({ article }: { article: any }) {
+export default function OpinionListItem({
+  article,
+  kicker = 'Opinion',
+  showQuoteBadge = true,
+}: {
+  article: any
+  kicker?: string
+  showQuoteBadge?: boolean
+}) {
   return (
     <article className="py-6 border-b border-gray-200 first:pt-0">
       <Link href={`/${article.category}/${article.slug.current}`} className="group flex gap-5 sm:gap-6 items-start">
         <div className="flex-1 min-w-0">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-700">Opinion</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-700">{kicker}</span>
           <h3 className="text-lg sm:text-xl font-bold text-text-primary mt-1.5 leading-snug group-hover:text-brand-700 transition-colors">
             {article.headline}
           </h3>
@@ -30,7 +38,7 @@ export default function OpinionListItem({ article }: { article: any }) {
               <span className="text-brand-800 font-bold text-xs">NUR</span>
             </div>
           )}
-          <QuoteBadge />
+          {showQuoteBadge && <QuoteBadge />}
         </div>
       </Link>
 

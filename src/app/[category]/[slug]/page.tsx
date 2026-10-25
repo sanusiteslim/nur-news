@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { client, articleQuery, relatedArticlesQuery } from '@/lib/sanity'
+import { client, articleQuery, relatedArticlesQuery, rankRelated } from '@/lib/sanity'
 import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -19,6 +19,7 @@ import { categoryLabels, formatTag } from '@/lib/taxonomy'
 import { withAdBreaks } from '@/lib/adBreaks'
 import { jsonLdString, newsArticleJsonLd } from '@/lib/jsonld'
 import AdSlot from '@/components/ads/AdSlot'
+import { Callout, DataTable, Divider, Embed, KeyFacts, PullQuote, RelatedStory } from '@/components/article/ArticleBodyBlocks'
 import type { Metadata } from 'next'
 
 // Refreshed on publish by /api/revalidate; this is only the fallback timer.
@@ -118,11 +119,15 @@ export default async function ArticlePage({ params }: Params) {
   }
 
   const tags: string[] = (article.tags || []).map((t: string) => t.toLowerCase())
-  const relatedArticles = await client.fetch(relatedArticlesQuery, {
-    category: article.category,
-    slug: article.slug.current,
-    tags,
-  })
+  // "Related" is a nice-to-have: if it fails, render the story without it
+  // rather than failing the whole page.
+  const relatedPool = await client
+    .fetch(relatedArticlesQuery, { category: article.category, slug: article.slug.current, tags })
+    .catch((err: unknown) => {
+      console.error('Related articles query failed:', err)
+      return []
+    })
+  const relatedArticles = rankRelated(relatedPool, article.category, tags)
 
   const shareUrl = `${getSiteUrl()}/${article.category}/${article.slug.current}`
   const readingTime = getReadingTime(article.body)
@@ -264,6 +269,7 @@ export default async function ArticlePage({ params }: Params) {
               normal: ({ children }: any) => <p className="mb-6 text-lg leading-relaxed text-text-primary">{children}</p>,
               h2: ({ children }: any) => <h2 className="text-2xl font-bold mt-10 mb-4 text-text-primary">{children}</h2>,
               h3: ({ children }: any) => <h3 className="text-xl font-semibold mt-8 mb-3 text-text-primary">{children}</h3>,
+              h4: ({ children }: any) => <h4 className="text-lg font-semibold mt-6 mb-2 text-text-primary">{children}</h4>,
               blockquote: ({ children }: any) => (
                 <blockquote className="border-l-4 border-brand-700 pl-6 italic text-text-secondary my-8 bg-surface-offwhite py-4 pr-4">
                   {children}
@@ -279,36 +285,67 @@ export default async function ArticlePage({ params }: Params) {
                 const href = safeHref(value?.href)
                 if (!href) return <>{children}</>
                 const external = !href.startsWith('/') && !href.startsWith(getSiteUrl())
+                // Older links have no openInNewTab value: keep their old behaviour.
+                const newTab = external && value?.openInNewTab !== false
                 return (
                   <a
                     href={href}
                     className="text-brand-700 underline underline-offset-2 hover:text-brand-800"
-                    {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    {...(newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
                     {children}
                   </a>
                 )
               },
+              internalLink: ({ value, children }: any) => {
+                const ref = value?.reference
+                if (!ref?.slug?.current || ref.status !== 'published') return <>{children}</>
+                return (
+                  <Link href={`/${ref.category}/${ref.slug.current}`} className="text-brand-700 underline underline-offset-2 hover:text-brand-800">
+                    {children}
+                  </Link>
+                )
+              },
               strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
               em: ({ children }: any) => <em className="italic">{children}</em>,
+              underline: ({ children }: any) => <span className="underline underline-offset-2">{children}</span>,
+              'strike-through': ({ children }: any) => <s>{children}</s>,
+              highlight: ({ children }: any) => <mark className="bg-brand-100 text-text-primary px-0.5 rounded-sm">{children}</mark>,
+              code: ({ children }: any) => <code className="font-mono text-[0.9em] bg-surface-offwhite border border-gray-200 rounded px-1 py-0.5">{children}</code>,
+              sup: ({ children }: any) => <sup>{children}</sup>,
+              sub: ({ children }: any) => <sub>{children}</sub>,
             },
             types: {
               image: ({ value }: any) => {
                 if (!value?.asset) return null
+                const medium = value.size === 'medium'
                 return (
-                  <figure className="my-8">
+                  <figure className={`my-8 ${medium ? 'max-w-xl mx-auto' : ''}`}>
                     <Image
-                      src={urlForImage(value).width(800).height(500).url()}
+                      src={urlForImage(value).width(medium ? 640 : 1200).url()}
                       alt={value.alt || ''}
-                      width={800}
-                      height={500}
-                      sizes="(max-width: 896px) 100vw, 800px"
-                      className="w-full rounded-lg"
+                      width={medium ? 640 : 1200}
+                      height={medium ? 427 : 750}
+                      sizes={medium ? '(max-width: 640px) 100vw, 576px' : '(max-width: 896px) 100vw, 800px'}
+                      className="w-full h-auto rounded-lg"
                     />
-                    {value.caption && <figcaption className="text-sm text-text-muted mt-2 text-center">{value.caption}</figcaption>}
+                    {(value.caption || value.credit) && (
+                      <figcaption className="text-sm text-text-muted mt-2 text-center">
+                        {value.caption}
+                        {value.caption && value.credit && ' · '}
+                        {value.credit && <span className="italic">{value.credit}</span>}
+                      </figcaption>
+                    )}
                   </figure>
                 )
               },
+              dataTable: DataTable,
+              callout: Callout,
+              keyFacts: KeyFacts,
+              pullQuote: PullQuote,
+              embed: Embed,
+              relatedStory: RelatedStory,
+              divider: Divider,
               adBreak: () => <AdSlot slot={process.env.NEXT_PUBLIC_ADSENSE_IN_ARTICLE_SLOT} />,
             },
           }}

@@ -32,7 +32,10 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        // var(--font-inter) is the Inter file next/font serves (see layout.tsx).
+        // Plain 'Inter' only matches if the reader has Inter installed, so
+        // without the variable most visitors got their system font instead.
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       animation: {
         'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',

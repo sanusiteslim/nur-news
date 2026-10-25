@@ -74,7 +74,22 @@ export const articleQuery = `
   *[_type == "article" && slug.current == $slug && status == "published"][0] {
     _id, _updatedAt, headline, slug, excerpt, category, tags,
     featuredImage, isBreaking, hasLiveUpdates, liveUpdates,
-    body,
+    // References inside the body (internal links, related-story cards) must be
+    // dereferenced here or they arrive as bare _refs with no URL to build.
+    body[]{
+      ...,
+      markDefs[]{
+        ...,
+        _type == "internalLink" => {
+          ...,
+          "reference": @.reference->{ slug, category, status }
+        }
+      },
+      _type == "relatedStory" => {
+        ...,
+        "story": story->{ headline, slug, category, excerpt, featuredImage, publishedAt, status }
+      }
+    },
     videoUrl, videoDuration,
     publishedAt,
     sources, corrections, seo,
@@ -116,20 +131,33 @@ export const searchQuery = groq`
   }
 `
 
-// Related = shares a tag (case-insensitive) or the category, ranked by how
-// many tags overlap, then recency. Falls back gracefully when untagged.
+// Related = shares a tag (case-insensitive) or the category. Sanity's score()
+// rejects count() comparisons (the query 400s and every article page 500s),
+// so this only filters and returns a pool; rankRelated() orders it in JS.
 export const relatedArticlesQuery = groq`
   *[
     _type == "article" &&
     status == "published" &&
     slug.current != $slug &&
     (category == $category || count(tags[lower(@) in $tags]) > 0)
-  ] | score(boost(count(tags[lower(@) in $tags]) > 0, 2), boost(category == $category, 1))
-    | order(_score desc, publishedAt desc) [0...3] {
-    headline, slug, excerpt, featuredImage, category, publishedAt,
+  ] | order(publishedAt desc) [0...12] {
+    headline, slug, excerpt, featuredImage, category, publishedAt, tags,
     "author": author->{name, photo}
   }
 `
+
+/** Most shared tags first, then same category, then newest. */
+export function rankRelated(pool: any[], category: string, tags: string[], limit = 3): any[] {
+  const wanted = new Set(tags.map((t) => t.toLowerCase()))
+  const score = (a: any) =>
+    (a.tags || []).filter((t: string) => wanted.has(String(t).toLowerCase())).length * 2 +
+    (a.category === category ? 1 : 0)
+  return [...(pool || [])]
+    .map((a, i) => ({ a, i, s: score(a) }))
+    .sort((x, y) => y.s - x.s || x.i - y.i)
+    .slice(0, limit)
+    .map(({ a }) => a)
+}
 
 // Video articles: either category='video' OR has a videoUrl/videoFile
 // Fetches article summaries for a known set of slugs. Used to hydrate the
