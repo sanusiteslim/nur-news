@@ -19,11 +19,11 @@ export default async function HomePage() {
   ])
 
   const homepage = dedupeHomepage(rawHomepage)
-
+  
   return (
     <div className="min-h-screen">
       {breaking && <BreakingBanner article={breaking} />}
-
+      <meta name="google-site-verification" content="WFUFmLaB6LMF2KqiCrkb2dfE9USht9Eh18_TQrRbrJo" />
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <HeroSection heroStory={homepage?.heroStory} sidebarStories={homepage?.sidebarStories || []} />
       </section>
