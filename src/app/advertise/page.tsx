@@ -46,7 +46,7 @@ const AD_FORMATS = [
 
 export default async function AdvertisePage() {
 
-
+  const whatsappMessage = `Hi, I'm [name] and I would like to advertise on your website.`;
   const directContact = [
     {
       name: 'Email',
@@ -58,7 +58,7 @@ export default async function AdvertisePage() {
     {
       name: 'WhatsApp',
       icon: FaWhatsapp,
-      href: 'https://wa.me/2349160711708', // Replace with actual number
+      href: `https://wa.me/2349160711708?text=${encodeURIComponent(whatsappMessage)}`, // Replace with actual number
       label: 'Chat on WhatsApp',
       primary: false,
     },
