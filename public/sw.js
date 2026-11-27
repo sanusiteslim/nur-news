@@ -12,7 +12,7 @@ const MAX_PAGES = 40
 const MAX_IMAGES = 120
 const OFFLINE_URL = '/offline'
 
-const PRECACHE_URLS = [OFFLINE_URL, '/icon-192.png', '/icon-512.png', '/favicon.ico']
+const PRECACHE_URLS = [OFFLINE_URL, '/192-icon.png', '/512-icon.png', '/favicon.ico']
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -165,7 +165,7 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: payload.body,
-    icon: '/icon-512.png',
+    icon: '/512-icon.png',
     badge: '/badge.png',
     image: payload.image,
     data: { url: payload.url || '/' },

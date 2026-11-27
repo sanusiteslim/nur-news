@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   // Fail loudly and clearly if the write token was never configured. Without
   // this guard, Sanity rejects the write with a generic 401 and the user just
   // sees "something went wrong" with no clue that an env var is missing.
-  if (!process.env.SANITY_TIPS_TOKEN) {
+  if (!process.env.SANITY_TIPS_TOKEN_TWO) {
     console.error(
       '[api/tips] SANITY_TIPS_TOKEN is not set. Create a Contributor token at ' +
         'manage.sanity.io -> API -> Tokens and add it to your environment variables.'

@@ -16,25 +16,25 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/192-icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/192-icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/512-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/512-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -46,28 +46,28 @@
       "short_name": "Live",
       "description": "Live coverage and breaking news",
       "url": "/live?source=pwa-shortcut",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/192-icon.png", "sizes": "192x192" }]
     },
     {
       "name": "Nigeria",
       "short_name": "Nigeria",
       "description": "Nigeria news",
       "url": "/nigeria?source=pwa-shortcut",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/192-icon.png", "sizes": "192x192" }]
     },
     {
       "name": "Sports",
       "short_name": "Sports",
       "description": "Sports news",
       "url": "/sports?source=pwa-shortcut",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/192-icon.png", "sizes": "192x192" }]
     },
     {
       "name": "Search",
       "short_name": "Search",
       "description": "Search NUR Report",
       "url": "/search?source=pwa-shortcut",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/192-icon.png", "sizes": "192x192" }]
     }
   ]
 }
