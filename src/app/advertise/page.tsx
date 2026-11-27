@@ -74,7 +74,7 @@ export default async function AdvertisePage() {
     {
       name: 'Facebook',
       icon: Facebook,
-      href: '#', // TODO: add real Facebook page URL
+      href: 'https://www.facebook.com/nurreport', // TODO: add real Facebook page URL
       label: 'Facebook',
     },
   ];
