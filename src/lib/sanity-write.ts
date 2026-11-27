@@ -21,5 +21,5 @@ export const writeClient = createClient({
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2026-07-17',
   useCdn: false,
-  token: process.env.SANITY_TIPS_TOKEN,
+  token: process.env.SANITY_TIPS_TOKEN_TWO,
 })
